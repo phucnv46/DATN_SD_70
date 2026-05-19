@@ -32,10 +32,7 @@ namespace DATN_70.Models.Entities
 
         public ICollection<ChiTietSanPham> ChiTietSanPhams { get; set; }
         public ICollection<KhuyenMaiSanPham> KhuyenMaiSanPhams { get; set; }
-<<<<<<< HEAD
 
         public ICollection<HinhAnhSanPham> HinhAnhSanPhams { get; set; }
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     }
 }

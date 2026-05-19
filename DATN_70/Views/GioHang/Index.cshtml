@@ -1,5 +1,4 @@
 @{
-<<<<<<< HEAD
     ViewData["Title"] = "Giỏ hàng của bạn";
 }
 
@@ -75,52 +74,3 @@
         font-weight: 800;
     }
 </style>
-=======
-    ViewData["Title"] = "Giỏ hàng";
-}
-
-<section id="cartPage" class="page-section cart-page">
-    <div class="container">
-        <div class="cart-shell">
-            <div class="cart-main">
-                <div class="cart-head">
-                    <div>
-                        <h1>Giỏ hàng của bạn</h1>
-                        <p>Đang có <span id="cartHeadCount">0</span> sản phẩm trong giỏ hàng.</p>
-                    </div>
-                </div>
-
-                <div id="cartItemsContainer" class="cart-items"></div>
-
-                <div class="cart-note-panel">
-                    <label class="filter-label" for="cartOrderNote">Ghi chú đơn hàng</label>
-                    <textarea id="cartOrderNote" class="store-textarea" rows="5" placeholder="Ghi chú giao hàng, thời gian nhận hàng hoặc yêu cầu thêm"></textarea>
-                </div>
-            </div>
-
-            <aside class="cart-summary-panel">
-                <h2>Thông tin thanh toán</h2>
-                <div class="summary-list">
-                    <div class="summary-row">
-                        <span>Tạm tính</span>
-                        <strong id="cartSubtotalAmount">0 đ</strong>
-                    </div>
-                    <div class="summary-row">
-                        <span>Giảm giá</span>
-                        <span id="cartDiscountAmount">0 đ</span>
-                    </div>
-                    <div class="summary-row">
-                        <span>Tổng tiền</span>
-                        <strong id="cartTotalAmount">0 đ</strong>
-                    </div>
-                </div>
-                <div class="cart-summary-copy">
-                    <p>Phí vận chuyển sẽ được tính ở bước thanh toán.</p>
-                    <p>Giảm số lượng về 0 sẽ yêu cầu xác nhận xóa sản phẩm.</p>
-                </div>
-                <a id="cartCheckoutLink" class="btn btn-dark-soft checkout-submit" asp-controller="Home" asp-action="Checkout">Thanh toán</a>
-            </aside>
-        </div>
-    </div>
-</section>
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

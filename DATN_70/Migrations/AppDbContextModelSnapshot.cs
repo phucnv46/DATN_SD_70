@@ -22,7 +22,6 @@ namespace DATN_70.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.Banner", b =>
                 {
                     b.Property<string>("BannerID")
@@ -93,8 +92,6 @@ namespace DATN_70.Migrations
                     b.ToTable("chiTietDoiTras");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.ChiTietGioHang", b =>
                 {
                     b.Property<string>("ChiTietGioHangID")
@@ -298,7 +295,6 @@ namespace DATN_70.Migrations
                     b.ToTable("GioHangs");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.HinhAnhSanPham", b =>
                 {
                     b.Property<string>("HinhAnhID")
@@ -331,8 +327,6 @@ namespace DATN_70.Migrations
                     b.ToTable("HinhAnhSanPhams");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.HoaDon", b =>
                 {
                     b.Property<string>("HoaDonID")
@@ -485,18 +479,14 @@ namespace DATN_70.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-<<<<<<< HEAD
                     b.Property<decimal>("GiaTriGiam")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Property<decimal>("GiaTriToiThieuApDung")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
 
-<<<<<<< HEAD
                     b.Property<decimal>("GiamToiDa")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
@@ -508,8 +498,6 @@ namespace DATN_70.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Property<string>("MoTa")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -521,17 +509,11 @@ namespace DATN_70.Migrations
                     b.Property<DateTime>("NgayKetThuc")
                         .HasColumnType("datetime2");
 
-<<<<<<< HEAD
                     b.Property<int>("SoLuongDaDung")
                         .HasColumnType("int");
 
                     b.Property<int>("SoLuongToiDa")
                         .HasColumnType("int");
-=======
-                    b.Property<decimal>("PhanTramChietKhau")
-                        .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
                     b.Property<string>("Ten")
                         .IsRequired()
@@ -640,7 +622,6 @@ namespace DATN_70.Migrations
                     b.ToTable("NhanViens");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
                 {
                     b.Property<string>("PhieuDoiTraID")
@@ -673,8 +654,6 @@ namespace DATN_70.Migrations
                     b.ToTable("phieuDoiTras");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.PhuongThucThanhToan", b =>
                 {
                     b.Property<string>("PhuongThucThanhToanID")
@@ -818,7 +797,6 @@ namespace DATN_70.Migrations
                     b.ToTable("VaiTros");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.ChiTietDoiTra", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.ChiTietSanPham", "ChiTietSanPham")
@@ -838,8 +816,6 @@ namespace DATN_70.Migrations
                     b.Navigation("PhieuDoiTra");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.ChiTietGioHang", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.ChiTietSanPham", "ChiTietSanPham")
@@ -927,7 +903,6 @@ namespace DATN_70.Migrations
                     b.Navigation("TaiKhoan");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.HinhAnhSanPham", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.Mau", "Mau")
@@ -945,8 +920,6 @@ namespace DATN_70.Migrations
                     b.Navigation("SanPham");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.HoaDon", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.DiaChi", "DiaChi")
@@ -1040,7 +1013,6 @@ namespace DATN_70.Migrations
                     b.Navigation("TaiKhoan");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.HoaDon", "HoaDon")
@@ -1052,8 +1024,6 @@ namespace DATN_70.Migrations
                     b.Navigation("HoaDon");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.SanPham", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.DanhMuc", "DanhMuc")
@@ -1133,11 +1103,8 @@ namespace DATN_70.Migrations
             modelBuilder.Entity("DATN_70.Models.Entities.Mau", b =>
                 {
                     b.Navigation("ChiTietSanPhams");
-<<<<<<< HEAD
 
                     b.Navigation("HinhAnhSanPhams");
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 });
 
             modelBuilder.Entity("DATN_70.Models.Entities.NhanVien", b =>
@@ -1145,14 +1112,11 @@ namespace DATN_70.Migrations
                     b.Navigation("HoaDons");
                 });
 
-<<<<<<< HEAD
             modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
                 {
                     b.Navigation("ChiTietDoiTras");
                 });
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.PhuongThucThanhToan", b =>
                 {
                     b.Navigation("ChiTietThanhToans");
@@ -1162,11 +1126,8 @@ namespace DATN_70.Migrations
                 {
                     b.Navigation("ChiTietSanPhams");
 
-<<<<<<< HEAD
                     b.Navigation("HinhAnhSanPhams");
 
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Navigation("KhuyenMaiSanPhams");
                 });
 

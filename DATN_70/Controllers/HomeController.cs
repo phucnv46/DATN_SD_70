@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 ﻿using DATN_70.Data;
 using DATN_70.Models.Entities;
 using DATN_70.Models.Enums;
-=======
-using DATN_70.Data;
-using DATN_70.Models.Entities;
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 using DATN_70.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +18,6 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index()
     {
-<<<<<<< HEAD
         // 1. Lấy dữ liệu Banners (Giữ nguyên)
         var banners = await _dbContext.Banners
             .AsNoTracking()
@@ -95,30 +89,11 @@ public class HomeController : Controller
             Banners = banners,
             FeaturedProducts = featuredProducts,
             SaleProducts = saleProducts
-=======
-        var model = new HomeIndexViewModel
-        {
-            Banners = await _dbContext.Banners
-                .AsNoTracking()
-                .Where(item => item.KichHoat)
-                .OrderBy(item => item.ThuTu)
-                .ThenBy(item => item.TieuDe)
-                .Select(item => new HomeBannerViewModel
-                {
-                    Id = item.BannerID,
-                    Title = item.TieuDe,
-                    Description = item.MoTa ?? string.Empty,
-                    ImageUrl = item.HinhAnhUrl,
-                    LinkUrl = string.IsNullOrWhiteSpace(item.LienKetUrl) ? "/Home/Products" : item.LienKetUrl
-                })
-                .ToListAsync()
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         };
 
         return View(model);
     }
 
-<<<<<<< HEAD
     public async Task<IActionResult> Products(string? category, string? size, decimal? minPrice, decimal? maxPrice, string? search, string? sort)
     {
         // 1. Khởi tạo truy vấn gốc, Nạp sẵn bảng con ChiTietSanPhams để tránh lỗi Lazy Loading
@@ -196,11 +171,6 @@ public class HomeController : Controller
 
         var products = await productsQuery.ToListAsync();
         return View(products);
-=======
-    public IActionResult Products()
-    {
-        return View();
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     }
 
     public IActionResult Details(string? id)
@@ -225,7 +195,6 @@ public class HomeController : Controller
         {
             return RedirectToAction("Login", "Account");
         }
-<<<<<<< HEAD
         var userId = HttpContext.Session.GetString("UserId");
         var account = await _dbContext.TaiKhoans
             .AsNoTracking()
@@ -250,8 +219,6 @@ public class HomeController : Controller
                 LoaiGiamGia = (int)v.LoaiGiamGia // Ép kiểu Enum về Int (0: Tiền mặt, 1: Phần trăm)
             })
             .ToListAsync();
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
         var model = new CheckoutPageViewModel
         {
@@ -340,7 +307,6 @@ public class HomeController : Controller
     {
         return !string.IsNullOrWhiteSpace(HttpContext.Session.GetString("UserId"));
     }
-<<<<<<< HEAD
 
     // ========================================================
 
@@ -592,38 +558,3 @@ public class HomeController : Controller
         public int SoLuong { get; set; }
     }
 }
-=======
-}
-
-internal static class AddressSerializer
-{
-    private const string Separator = "||";
-
-    public static string Pack(string ward, string street)
-    {
-        return $"{ward}{Separator}{street}";
-    }
-
-    public static string ExtractWard(string? packedWard)
-    {
-        if (string.IsNullOrWhiteSpace(packedWard))
-        {
-            return string.Empty;
-        }
-
-        var parts = packedWard.Split(Separator, StringSplitOptions.None);
-        return parts[0];
-    }
-
-    public static string ExtractStreet(string? packedWard)
-    {
-        if (string.IsNullOrWhiteSpace(packedWard))
-        {
-            return string.Empty;
-        }
-
-        var parts = packedWard.Split(Separator, StringSplitOptions.None);
-        return parts.Length > 1 ? parts[1] : string.Empty;
-    }
-}
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

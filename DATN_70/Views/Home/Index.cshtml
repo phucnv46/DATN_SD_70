@@ -4,16 +4,11 @@
     var banners = Model?.Banners ?? new List<DATN_70.Models.ViewModels.HomeBannerViewModel>();
 }
 
-<<<<<<< HEAD
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <section id="homePage" class="page-section home-page" data-banner-count="@banners.Count">
     <div class="container">
 
-=======
-<section id="homePage" class="page-section home-page" data-banner-count="@banners.Count">
-    <div class="container">
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         <section class="hero-banner @(banners.Count > 1 ? "is-slideshow" : "is-static")" data-interval="7000">
             @if (banners.Count == 0)
             {
@@ -52,17 +47,10 @@
                 @if (banners.Count > 1)
                 {
                     <div class="hero-banner-nav" aria-label="Banner controls">
-<<<<<<< HEAD
                         <button type="button" class="hero-nav-button" data-slide-direction="prev" aria-label="Banner trước">
                             <span>&larr;</span>
                         </button>
                         <button type="button" class="hero-nav-button" data-slide-direction="next" aria-label="Banner tiếp theo">
-=======
-                        <button type="button" class="hero-nav-button" data-slide-direction="prev" aria-label="Banner truoc">
-                            <span>&larr;</span>
-                        </button>
-                        <button type="button" class="hero-nav-button" data-slide-direction="next" aria-label="Banner tiep theo">
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                             <span>&rarr;</span>
                         </button>
                     </div>
@@ -76,7 +64,6 @@
             }
         </section>
 
-<<<<<<< HEAD
         <section class="home-feature-grid my-4">
             <article class="home-feature-card p-4 d-flex align-items-start gap-3">
                 <div class="fs-2 text-dark"><i class="bi bi-lightning-charge-fill"></i></div>
@@ -202,60 +189,3 @@
         font-weight: 800;
     }
 </style>
-=======
-        <section class="home-feature-grid">
-            <article class="home-feature-card">
-                <strong>Giao dien mua nhanh</strong>
-                <p>Chon mau, size va them gio hang nhanh tren storefront, khong can di qua qua nhieu lop man hinh.</p>
-            </article>
-            <article class="home-feature-card">
-                <strong>Checkout gon hon</strong>
-                <p>Khach da dang nhap co the lay san thong tin ho so va dia chi mac dinh khi thanh toan.</p>
-            </article>
-            <article class="home-feature-card">
-                <strong>Theo doi don ro rang</strong>
-                <p>Trang thai don hang duoc tach theo tung moc de nguoi mua theo doi lai de dang.</p>
-            </article>
-        </section>
-
-        <section class="home-block">
-            <div class="section-heading">
-                <div>
-                    <h2>Danh muc noi bat</h2>
-                    <p class="section-subtitle">Đi thẳng vào nhóm sản phẩm bán tốt trong mùa lạnh.</p>
-                </div>
-            </div>
-            <div id="homeCategories" class="category-row"></div>
-        </section>
-
-        <section class="home-block promo-shelf">
-            <div class="section-heading">
-                <div>
-                    <h2>Sản phẩm ưu đãi sâu</h2>
-                    <p class="section-subtitle">Chỉ hiển thị các sản phẩm đang có khuyến mãi thực sự trong database.</p>
-                </div>
-                <a asp-controller="Home" asp-action="Products">Xem tất cả</a>
-            </div>
-            <div id="homeFeaturedProducts" class="product-row product-row-fixed">
-                <div class="empty-state">Đang tải sản phẩm khuyến mãi...</div>
-            </div>
-        </section>
-
-        <section class="home-block">
-            <div class="section-heading">
-                <div>
-                    <h2>Mặc theo nhu cầu</h2>
-                    <p class="section-subtitle">Chuyển nhanh giữa các nhóm áo khoác, layer và đồ giữ nhiệt để lọc hàng phù hợp.</p>
-                </div>
-            </div>
-            <div id="homeTabs" class="tab-strip"></div>
-            <div id="homeTabProducts" class="product-row product-row-fixed large-grid">
-                <div class="empty-state">Đang tải sản phẩm...</div>
-            </div>
-            <div class="center-action">
-                <a class="pill-link" asp-controller="Home" asp-action="Products">Xem tất cả sản phẩm</a>
-            </div>
-        </section>
-    </div>
-</section>
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

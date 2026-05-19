@@ -171,11 +171,7 @@ public sealed class CartController : ControllerBase
         var account = await GetCurrentAccountAsync(cancellationToken);
         if (account is null)
         {
-<<<<<<< HEAD
             return Unauthorized(new { message = "Vui lòng đăng nhập." });
-=======
-            return Unauthorized(new { message = "Vui lÃ²ng Ä‘Äƒng nháº­p." });
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         }
 
         var cart = await EnsureCartAsync(account.TaiKhoanID, cancellationToken);
@@ -264,18 +260,13 @@ public sealed class CartController : ControllerBase
         return ApplyDiscount(variant.GiaNiemYet, discounts.GetValueOrDefault(variant.SanPhamID));
     }
 
-<<<<<<< HEAD
     // --- HÀM LẤY KHUYẾN MÃI ĐÃ ĐƯỢC CẬP NHẬT ĐỂ LẤY TOÀN BỘ OBJECT KHUYENMAI ---
     private async Task<Dictionary<string, KhuyenMai>> GetActiveDiscountsAsync(
-=======
-    private async Task<Dictionary<string, decimal>> GetActiveDiscountsAsync(
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         IReadOnlyCollection<string> productIds,
         CancellationToken cancellationToken)
     {
         if (productIds.Count == 0)
         {
-<<<<<<< HEAD
             return new Dictionary<string, KhuyenMai>();
         }
 
@@ -283,19 +274,10 @@ public sealed class CartController : ControllerBase
         var promos = await _dbContext.KhuyenMaiSanPhams
             .AsNoTracking()
             .Include(item => item.KhuyenMai)
-=======
-            return new Dictionary<string, decimal>();
-        }
-
-        var now = DateTime.Now;
-        return await _dbContext.KhuyenMaiSanPhams
-            .AsNoTracking()
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             .Where(item => productIds.Contains(item.SanPhamID)
                 && item.KhuyenMai.TrangThai == Models.Enums.Enums.TrangThaiHoatDong.HoatDong
                 && item.KhuyenMai.NgayApDung <= now
                 && item.KhuyenMai.NgayKetThuc >= now)
-<<<<<<< HEAD
             .ToListAsync(cancellationToken);
 
         var dict = new Dictionary<string, KhuyenMai>();
@@ -315,25 +297,10 @@ public sealed class CartController : ControllerBase
     {
         // Nếu không có khuyến mãi hoặc giá trị giảm <= 0 thì giữ nguyên giá gốc
         if (promo == null || promo.GiaTriGiam <= 0)
-=======
-            .GroupBy(item => item.SanPhamID)
-            .Select(group => new
-            {
-                SanPhamID = group.Key,
-                PhanTramGiam = group.Max(item => item.KhuyenMai.PhanTramChietKhau)
-            })
-            .ToDictionaryAsync(item => item.SanPhamID, item => item.PhanTramGiam, cancellationToken);
-    }
-
-    private static decimal ApplyDiscount(decimal basePrice, decimal discountPercent)
-    {
-        if (discountPercent <= 0)
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         {
             return basePrice;
         }
 
-<<<<<<< HEAD
         decimal tienGiam = 0;
 
         if ((int)promo.LoaiGiamGia == 1) // 1: Dạng giảm Phần trăm
@@ -356,8 +323,3 @@ public sealed class CartController : ControllerBase
         return finalPrice < 0 ? 0 : Math.Round(finalPrice, 0, MidpointRounding.AwayFromZero);
     }
 }
-=======
-        return Math.Round(basePrice * (100 - discountPercent) / 100m, 0, MidpointRounding.AwayFromZero);
-    }
-}
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
