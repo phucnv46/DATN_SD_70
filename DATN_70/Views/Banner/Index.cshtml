@@ -1,0 +1,84 @@
+@model DATN_70.Models.ViewModels.BannerManagementViewModel
+@{
+    ViewData["Title"] = "Quan ly banner";
+}
+
+<section class="page-section">
+    <div class="container">
+        <div class="account-panel">
+            <div class="section-heading">
+                <div>
+                    <h2>Quan ly banner trang chu</h2>
+                    <p class="section-subtitle">Tai anh len de hien thi tren banner. Neu co tu 2 banner dang kich hoat tro len, trang chu se tu chay slideshow.</p>
+                </div>
+            </div>
+
+            @if (TempData["BannerMessage"] is string message)
+            {
+                <div class="empty-state">@message</div>
+            }
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data" class="account-form-grid">
+                @Html.AntiForgeryToken()
+                <div>
+                    <label class="filter-label" for="bannerTitle">Tieu de</label>
+                    <input id="bannerTitle" class="store-input" type="text" name="title" />
+                </div>
+                <div>
+                    <label class="filter-label" for="bannerSortOrder">Thu tu</label>
+                    <input id="bannerSortOrder" class="store-input" type="number" name="sortOrder" value="1" />
+                </div>
+                <div class="full">
+                    <label class="filter-label" for="bannerDescription">Mo ta</label>
+                    <textarea id="bannerDescription" class="store-textarea" name="description" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="filter-label" for="bannerLinkUrl">Lien ket</label>
+                    <input id="bannerLinkUrl" class="store-input" type="text" name="linkUrl" value="/Home/Products" />
+                </div>
+                <div>
+                    <label class="filter-label" for="bannerImageFile">Anh banner</label>
+                    <input id="bannerImageFile" class="store-input" type="file" name="imageFile" accept="image/*" />
+                </div>
+                <label class="inline-check full">
+                    <input type="checkbox" name="isActive" value="true" checked />
+                    <span>Kich hoat banner ngay sau khi tai len</span>
+                </label>
+                <div class="account-actions">
+                    <button type="submit" class="btn btn-dark-soft">Tai banner</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="address-stack">
+            @foreach (var item in Model.Items)
+            {
+                <article class="saved-address-card static-card banner-admin-card">
+                    <img src="@item.ImageUrl" alt="@item.Title" class="banner-admin-image" />
+                    <div class="saved-address-top">
+                        <strong>@item.Title</strong>
+                        <span class="status-pill">@(item.IsActive ? "Dang hien" : "Dang an")</span>
+                    </div>
+                    <div class="item-meta">@item.Description</div>
+                    <div class="item-meta">Thu tu: @item.SortOrder</div>
+                    @if (!string.IsNullOrWhiteSpace(item.LinkUrl))
+                    {
+                        <div class="item-meta">Lien ket: @item.LinkUrl</div>
+                    }
+                    <div class="address-card-actions">
+                        <form asp-action="Toggle" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-ghost-dark">@(item.IsActive ? "An banner" : "Hien banner")</button>
+                        </form>
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('Xoa banner nay?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-brand">Xoa</button>
+                        </form>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>

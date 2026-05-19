@@ -1,0 +1,407 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="card p-4 bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">QUẢN LÝ SẢN PHẨM & KHO HÀNG</h4>
+            <p class="text-muted small mb-0">Thiết lập sản phẩm mới, cập nhật giá và số lượng tồn kho theo từng biến thể (Màu sắc/Kích cỡ).</p>
+        </div>
+        <button class="btn btn-dark btn-sm px-3 rounded-pill fw-medium" data-bs-toggle="modal" data-bs-target="#productModal">
+            <i class="bi bi-plus-circle me-1"></i> Thêm sản phẩm mới
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã SP</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Danh Mục</th>
+                    <th>Thương Hiệu</th>
+                    <th class="text-center">Số Biến Thể</th>
+                    <th class="text-center">Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <tr><td colspan="6" class="text-center text-muted py-4">Đang tải dữ liệu...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="productModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">THÊM SẢN PHẨM MỚI</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createProductForm" enctype="multipart/form-data">
+                <div class="modal-body bg-light">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white fw-bold"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tên sản phẩm *</label>
+                                <input type="text" class="form-control form-control-sm" id="pTen" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Danh mục *</label>
+                                <select class="form-select form-select-sm" id="pDanhMuc" required></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Thương hiệu *</label>
+                                <select class="form-select form-select-sm" id="pThuongHieu" required></select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Mô tả sản phẩm</label>
+                                <textarea class="form-control form-control-sm" id="pMoTa" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Ảnh đại diện sản phẩm *</label>
+                                <input type="file" class="form-control form-control-sm" id="pFileAnh" accept="image/*" required />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-diagram-3 me-2"></i>Thiết lập phân loại (Màu sắc & Kích cỡ)</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnAddVariant">
+                                <i class="bi bi-plus"></i> Thêm phân loại
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless mb-0">
+                                <thead class="border-bottom small text-muted">
+                                    <tr>
+                                        <th>Màu sắc</th>
+                                        <th>Kích cỡ</th>
+                                        <th>Giá bán (đ)</th>
+                                        <th>Kho</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="variantTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-dark btn-sm px-4" id="btnSubmitProduct">Lưu Sản Phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="productEditModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-primary">CẬP NHẬT THÔNG TIN SẢN PHẨM <span id="txtEditProductId" class="text-secondary font-monospace"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editProductForm" enctype="multipart/form-data">
+                <input type="hidden" id="editpId" />
+                <div class="modal-body bg-light">
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-white fw-bold"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</div>
+                        <div class="card-body row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tên sản phẩm *</label>
+                                <input type="text" class="form-control form-control-sm" id="editpTen" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Danh mục *</label>
+                                <select class="form-select form-select-sm" id="editpDanhMuc" required></select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Thương hiệu *</label>
+                                <select class="form-select form-select-sm" id="editpThuongHieu" required></select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold">Mô tả sản phẩm</label>
+                                <textarea class="form-control form-control-sm" id="editpMoTa" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ảnh sản phẩm hiện tại</label>
+                                <div id="editpPreviewImg" class="mb-2"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Thay thế ảnh mới (Bỏ trống nếu giữ nguyên)</label>
+                                <input type="file" class="form-control form-control-sm" id="editpFileAnh" accept="image/*" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-diagram-3 me-2"></i>Cấu hình Biến thể kho hàng</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnEditAddVariant">
+                                <i class="bi bi-plus"></i> Thêm phân loại mới
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <table class="table table-borderless mb-0">
+                                <thead class="border-bottom small text-muted">
+                                    <tr>
+                                        <th>Màu sắc</th>
+                                        <th>Kích cỡ</th>
+                                        <th>Giá bán (đ)</th>
+                                        <th>Kho tồn</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="editVariantTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4" id="btnEditSubmitProduct">Cập Nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#menu-products').addClass('active');
+
+            let colors = [], sizes = [], categories = [], brands = [];
+
+            // 1. Đồng bộ tải tài nguyên lúc khởi chạy trang công khai
+            Promise.all([
+                $.get('/api/admin/products'),
+                $.get('/api/admin/colors'),
+                $.get('/api/admin/sizes'),
+                $.get('/api/admin/categories'),
+                $.get('/api/admin/brands')
+            ]).then(function(results) {
+                const productsData = results[0];
+                colors = results[1];
+                sizes = results[2];
+                categories = results[3];
+                brands = results[4];
+
+                renderProductTable(productsData);
+
+                $('#pDanhMuc').html('<option value="">- Chọn -</option>' + categories.map(c => `<option value="${c.danhMucID}">${c.ten}</option>`).join(''));
+                $('#pThuongHieu').html('<option value="">- Chọn -</option>' + brands.map(b => `<option value="${b.thuongHieuID}">${b.ten}</option>`).join(''));
+
+                addVariantRow();
+            }).catch(err => alert("Lỗi khi kết nối tài nguyên máy chủ."));
+
+            // 2. Hàm vẽ bảng sản phẩm ra màn hình
+            function renderProductTable(data) {
+                if(data.length === 0) {
+                    $('#productTableBody').html('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có sản phẩm nào trong kho.</td></tr>');
+                    return;
+                }
+                const html = data.map(p => `
+                    <tr>
+                        <td class="font-monospace small fw-bold text-secondary">${p.sanPhamID}</td>
+                        <td class="fw-bold text-dark">${p.ten}</td>
+                        <td>${p.danhMuc}</td>
+                        <td>${p.thuongHieu}</td>
+                        <td class="text-center"><span class="badge bg-secondary-soft text-secondary border">${p.soBienThe} phân loại</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-dark btn-view-product" data-id="${p.sanPhamID}" title="Sửa thông tin"><i class="bi bi-eye-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-product" data-id="${p.sanPhamID}" title="Xóa sản phẩm"><i class="bi bi-trash-fill"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+                $('#productTableBody').html(html);
+            }
+
+            // 3. Quản lý dòng phân loại động cho form TẠO MỚI
+            function addVariantRow() {
+                const colorOptions = colors.map(c => `<option value="${c.mauID}">${c.ten}</option>`).join('');
+                const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}">${s.ten}</option>`).join('');
+                const rowHtml = `
+                    <tr class="variant-row">
+                        <td><select class="form-select form-select-sm v-color" required><option value="">Màu...</option>${colorOptions}</select></td>
+                        <td><select class="form-select form-select-sm v-size" required><option value="">Size...</option>${sizeOptions}</select></td>
+                        <td><input type="number" class="form-control form-control-sm v-price" min="0" required placeholder="Giá niêm yết"></td>
+                        <td><input type="number" class="form-control form-control-sm v-stock" min="0" required placeholder="SL Tồn"></td>
+                        <td><button type="button" class="btn btn-sm text-danger btn-remove-variant"><i class="bi bi-trash"></i></button></td>
+                    </tr>`;
+                $('#variantTableBody').append(rowHtml);
+            }
+            $('#btnAddVariant').click(addVariantRow);
+            $(document).on('click', '.btn-remove-variant', function() {
+                if($('.variant-row').length > 1) $(this).closest('tr').remove();
+                else alert("Sản phẩm bắt buộc phải có ít nhất 1 phân loại.");
+            });
+
+            // 4. BẤM NÚT CON MẮT: LOAD DATA ĐỔ LÊN MODAL CẬP NHẬT (READ DETAIL)
+            $(document).on('click', '.btn-view-product', function() {
+                const productId = $(this).data('id');
+
+                $('#editpDanhMuc').html('<option value="">- Chọn -</option>' + categories.map(c => `<option value="${c.danhMucID}">${c.ten}</option>`).join(''));
+                $('#editpThuongHieu').html('<option value="">- Chọn -</option>' + brands.map(b => `<option value="${b.thuongHieuID}">${b.ten}</option>`).join(''));
+
+                $.get(`/api/admin/products/${productId}`, function(res) {
+                    $('#txtEditProductId').text(`[${res.sanPhamID}]`);
+                    $('#editpId').val(res.sanPhamID);
+                    $('#editpTen').val(res.ten);
+                    $('#editpMoTa').val(res.moTa);
+                    $('#editpDanhMuc').val(res.danhMucID);
+                    $('#editpThuongHieu').val(res.thuongHieuID);
+
+                    if(res.hinhAnhUrl) {
+                        $('#editpPreviewImg').html(`<img src="${res.hinhAnhUrl}" style="height: 50px; object-fit: cover;" class="rounded border shadow-sm" />`);
+                    } else {
+                        $('#editpPreviewImg').html('<span class="text-muted small">Chưa nạp ảnh</span>');
+                    }
+
+                    $('#editVariantTableBody').empty();
+                    if(res.bienThes && res.bienThes.length > 0) {
+                        res.bienThes.forEach(vt => {
+                            addVariantRowToEdit(vt.mauID, vt.kichCoID, vt.giaNiemYet, vt.soLuongTonKho);
+                        });
+                    } else {
+                        addVariantRowToEdit();
+                    }
+
+                    $('#productEditModal').modal('show');
+                }).fail(err => alert("Lỗi trích xuất thông tin sản phẩm."));
+            });
+
+            // Hàm đẻ dòng động cho Form CẬP NHẬT (Khóa tổ hợp Màu+Size cũ để bảo toàn logic đơn hàng)
+            function addVariantRowToEdit(selectedColorId = "", selectedSizeId = "", price = "", stock = "") {
+                const colorOptions = colors.map(c => `<option value="${c.mauID}" ${c.mauID === selectedColorId ? 'selected' : ''}>${c.ten}</option>`).join('');
+                const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}" ${s.kichCoID === selectedSizeId ? 'selected' : ''}>${s.ten}</option>`).join('');
+
+                const rowHtml = `
+                    <tr class="edit-variant-row">
+                        <td>
+                            <select class="form-select form-select-sm ev-color" required ${selectedColorId ? 'disabled' : ''}><option value="">Màu...</option>${colorOptions}</select>
+                            ${selectedColorId ? `<input type="hidden" class="ev-color-hidden" value="${selectedColorId}" />` : ''}
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm ev-size" required ${selectedSizeId ? 'disabled' : ''}><option value="">Size...</option>${sizeOptions}</select>
+                            ${selectedSizeId ? `<input type="hidden" class="ev-size-hidden" value="${selectedSizeId}" />` : ''}
+                        </td>
+                        <td><input type="number" class="form-control form-control-sm ev-price" min="0" required value="${price}" placeholder="Giá bán"></td>
+                        <td><input type="number" class="form-control form-control-sm ev-stock" min="0" required value="${stock}" placeholder="Kho tồn"></td>
+                        <td><button type="button" class="btn btn-sm text-danger btn-remove-edit-variant"><i class="bi bi-trash"></i></button></td>
+                    </tr>`;
+                $('#editVariantTableBody').append(rowHtml);
+            }
+            $('#btnEditAddVariant').click(function() { addVariantRowToEdit(); });
+            $(document).on('click', '.btn-remove-edit-variant', function() {
+                if($('.edit-variant-row').length > 1) $(this).closest('tr').remove();
+                else alert("Sản phẩm bắt buộc phải có ít nhất 1 phân loại phân phối.");
+            });
+
+            // 5. XỬ LÝ SUBMIT FORM TẠO MỚI (POST)
+            $('#createProductForm').submit(function(e) {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('Ten', $('#pTen').val());
+                formData.append('MoTa', $('#pMoTa').val());
+                formData.append('DanhMucID', $('#pDanhMuc').val());
+                formData.append('ThuongHieuID', $('#pThuongHieu').val());
+
+                const fileInput = document.getElementById('pFileAnh');
+                if(fileInput.files[0]) formData.append('FileAnh', fileInput.files[0]);
+
+                let variantIndex = 0;
+                $('.variant-row').each(function() {
+                    formData.append(`BienThes[${variantIndex}].MauID`, $(this).find('.v-color').val());
+                    formData.append(`BienThes[${variantIndex}].KichCoID`, $(this).find('.v-size').val());
+                    formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.v-price').val());
+                    formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.v-stock').val());
+                    variantIndex++;
+                });
+
+                $('#btnSubmitProduct').prop('disabled', true).text('Đang đẩy lên hệ thống...');
+                $.ajax({
+                    url: '/api/admin/products/create',
+                    type: 'POST',
+                    data: formData,
+                    processData: false, contentType: false,
+                    success: function(res) {
+                        alert(res.message);
+                        $('#productModal').modal('hide');
+                        $('#createProductForm')[0].reset();
+                        $('#variantTableBody').empty();
+                        addVariantRow();
+                        $.get('/api/admin/products', renderProductTable);
+                    },
+                    error: function() { alert("Gặp lỗi trong quá trình tạo mới hàng hóa."); },
+                    complete: function() { $('#btnSubmitProduct').prop('disabled', false).text('Lưu Sản Phẩm'); }
+                });
+            });
+
+            // 6. XỬ LÝ SUBMIT FORM CẬP NHẬT (PUT)
+            $('#editProductForm').submit(function(e) {
+                e.preventDefault();
+                const productId = $('#editpId').val();
+                const formData = new FormData();
+                formData.append('Ten', $('#editpTen').val());
+                formData.append('MoTa', $('#editpMoTa').val());
+                formData.append('DanhMucID', $('#editpDanhMuc').val());
+                formData.append('ThuongHieuID', $('#editpThuongHieu').val());
+
+                const fileInput = document.getElementById('editpFileAnh');
+                if(fileInput.files[0]) formData.append('FileAnh', fileInput.files[0]);
+
+                let variantIndex = 0;
+                $('.edit-variant-row').each(function() {
+                    const mId = $(this).find('.ev-color').is(':disabled') ? $(this).find('.ev-color-hidden').val() : $(this).find('.ev-color').val();
+                    const sId = $(this).find('.ev-size').is(':disabled') ? $(this).find('.ev-size-hidden').val() : $(this).find('.ev-size').val();
+
+                    formData.append(`BienThes[${variantIndex}].MauID`, mId);
+                    formData.append(`BienThes[${variantIndex}].KichCoID`, sId);
+                    formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.ev-price').val());
+                    formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.ev-stock').val());
+                    variantIndex++;
+                });
+
+                $('#btnEditSubmitProduct').prop('disabled', true).text('Đang thực thi...');
+                $.ajax({
+                    url: `/api/admin/products/${productId}`,
+                    type: 'PUT',
+                    data: formData,
+                    processData: false, contentType: false,
+                    success: function(res) {
+                        alert(res.message);
+                        $('#productEditModal').modal('hide');
+                        $.get('/api/admin/products', renderProductTable);
+                    },
+                    error: function(err) { alert(err.responseJSON?.message || "Lỗi đồng bộ thông tin sửa."); },
+                    complete: function() { $('#btnEditSubmitProduct').prop('disabled', false).text('Cập Nhật'); }
+                });
+            });
+
+            // 7. XỬ LÝ BẤM NÚT THÙNG RÁC: XÓA SẢN PHẨM REALTIME (DELETE)
+            $(document).on('click', '.btn-delete-product', function() {
+                const productId = $(this).data('id');
+                if(!confirm(`Hệ thống cảnh báo: Bạn có chắc chắn muốn xóa vĩnh viễn mã sản phẩm [${productId}] cùng toàn bộ kho hàng biến thể liên quan không?`)) return;
+
+                $.ajax({
+                    url: `/api/admin/products/${productId}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        alert(res.message);
+                        $.get('/api/admin/products', renderProductTable);
+                    },
+                    error: function(err) {
+                        alert(err.responseJSON?.message || "Từ chối thực thi: Sản phẩm đã dính dữ liệu hóa đơn giao dịch.");
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,174 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý tài khoản";
+}
+
+<div class="card p-4 bg-white">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">QUẢN LÝ TÀI KHOẢN</h4>
+            <p class="text-muted small mb-0">Giám sát tài khoản hệ thống phân theo nhóm Khách hàng và Ban quản trị.</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills nav-justified mb-4 p-1 bg-light rounded-3 shadow-sm" id="accountTabs" role="tablist" style="max-width: 500px;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold py-2" data-bs-toggle="tab" type="button" role="tab" data-role-id="R03">
+                <i class="bi bi-people-fill me-2"></i>Khách hàng
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2" data-bs-toggle="tab" type="button" role="tab" data-role-id="R02">
+                <i class="bi bi-shield-lock-fill me-2"></i>Nhân viên / Admin
+            </button>
+        </li>
+    </ul>
+
+    <div class="row g-3 mb-4 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="accountSearchInput" class="form-control border-start-0 bg-light" placeholder="Tìm theo Email, Tên hoặc SĐT..." />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="accountStatusFilter" class="form-select form-select-sm fw-medium">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Hoạt động">Đang hoạt động</option>
+                <option value="Bị khóa">Đã bị khóa</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Mã Tài Khoản</th>
+                    <th>Chủ Tài Khoản</th>
+                    <th>Email Đăng Nhập</th>
+                    <th>Vai Trò</th>
+                    <th class="text-center">Trạng Thái Truy Cập</th>
+                </tr>
+            </thead>
+            <tbody id="accountTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#menu-accounts').addClass('active');
+
+            // Biến lưu trạng thái bộ lọc hiện tại (Mặc định R03 là Khách hàng)
+            let currentRoleId = "R03";
+            let currentKeyword = "";
+            let currentStatus = "";
+
+            loadAccounts();
+
+            // 1. Chuyển Tab
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                currentRoleId = $(e.target).data('role-id');
+                loadAccounts();
+            });
+
+            // 2. Gõ phím tìm kiếm (Debounce)
+            let searchTimeout = null;
+            $('#accountSearchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                currentKeyword = $(this).val();
+                searchTimeout = setTimeout(function() {
+                    loadAccounts();
+                }, 400);
+            });
+
+            // 3. Lọc trạng thái
+            $('#accountStatusFilter').change(function() {
+                currentStatus = $(this).val();
+                loadAccounts();
+            });
+
+            // Hàm gọi API lấy danh sách tài khoản
+            function loadAccounts() {
+                $('#accountTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang rà soát danh sách...</td></tr>');
+
+                // Nối URL với các tham số lọc
+                let url = `/api/admin/accounts?roleId=${currentRoleId}`;
+                if(currentKeyword) url += `&search=${encodeURIComponent(currentKeyword)}`;
+                if(currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
+
+                $.get(url, function(data) {
+                    let html = '';
+                    if(data.length === 0) {
+                        html = '<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
+                    } else {
+                        data.forEach(user => {
+                            const isLocked = user.trangThai === "Bị khóa";
+                            const roleBadge = user.vaiTroId === "R01" ? "bg-danger" : (user.vaiTroId === "R02" ? "bg-primary" : "bg-secondary");
+                            const roleName = user.vaiTroId === "R01" ? "Admin" : (user.vaiTroId === "R02" ? "Nhân viên" : "Khách hàng");
+
+                            html += `
+                                <tr>
+                                    <td class="text-secondary small font-monospace">${user.taiKhoanId}</td>
+                                            <td>
+                                        <div class="fw-bold text-dark">${user.tenChuTaiKhoan}</div>
+                                                <small class="text-muted"><i class="bi bi-telephone me-1"></i>${user.soDienThoai || 'N/A'}</small>
+                                        </td>
+                                    <td class="fw-medium text-dark">${user.email}</td>
+                                    <td><span class="badge ${roleBadge}-soft text-${roleBadge.replace('bg-', '')} border px-2 py-1">${roleName}</span></td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input btn-toggle-status" type="checkbox"
+                                                   data-id="${user.taiKhoanId}"
+                                                   data-email="${user.email}"
+                                                   ${!isLocked ? 'checked' : ''}>
+                                            <label class="form-check-label small fw-bold ${isLocked ? 'text-danger' : 'text-success'}">
+                                                ${user.trangThai}
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                        });
+                    }
+                    $('#accountTableBody').html(html);
+                });
+            }
+
+            // Xử lý click nút gạt Switch Trạng thái tài khoản
+            $(document).on('change', '.btn-toggle-status', function() {
+                const checkbox = $(this);
+                const accountId = checkbox.data('id');
+                const email = checkbox.data('email');
+                const nextStatus = checkbox.is(':checked') ? "Hoạt động" : "Bị khóa";
+
+                if(!confirm(`Bạn có chắc chắn muốn chuyển trạng thái tài khoản ${email} thành [${nextStatus}] không?`)) {
+                    checkbox.prop('checked', !checkbox.is(':checked'));
+                    return;
+                }
+
+                $.ajax({
+                    url: `/api/admin/accounts/${accountId}/status`,
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ trangThai: nextStatus }),
+                    success: function(res) {
+                        const label = checkbox.closest('.form-check').find('.form-check-label');
+                        label.text(nextStatus);
+                        if(nextStatus === "Bị khóa") {
+                            label.removeClass('text-success').addClass('text-danger');
+                        } else {
+                            label.removeClass('text-danger').addClass('text-success');
+                        }
+                    },
+                    error: function(err) {
+                        alert("Lỗi thực thi thay đổi quyền truy cập tài khoản.");
+                        checkbox.prop('checked', !checkbox.is(':checked'));
+                    }
+                });
+            });
+        });
+    </script>
+}

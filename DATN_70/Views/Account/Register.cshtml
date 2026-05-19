@@ -1,0 +1,44 @@
+﻿@model DATN_70.Models.Entities.TaiKhoan
+
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 rounded-lg">
+                <div class="card-body p-5">
+                    <h3 class="text-center mb-4 fw-bold">Tạo Tài Khoản</h3>
+                    
+                    <form asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 text-center"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label text-muted">Email đăng nhập</label>
+                            <input asp-for="Email" type="email" class="form-control form-control-lg" placeholder="name@example.com" required />
+                            <span asp-validation-for="Email" class="text-danger fs-6"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="MatKhau" class="form-label text-muted">Mật khẩu</label>
+                            <input asp-for="MatKhau" type="password" class="form-control form-control-lg" placeholder="••••••••" required />
+                            <span asp-validation-for="MatKhau" class="text-danger fs-6"></span>
+                        </div>
+
+                        <input type="hidden" asp-for="TaiKhoanID" value="@Guid.NewGuid().ToString()" />
+                        <input type="hidden" asp-for="TrangThai" value="Hoạt động" />
+                        <input type="hidden" asp-for="VaiTroID" value="R03" />
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Đăng Ký</button>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p class="text-muted">Đã có tài khoản? <a href="/Account/Login" class="text-decoration-none fw-bold text-primary">Đăng nhập</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

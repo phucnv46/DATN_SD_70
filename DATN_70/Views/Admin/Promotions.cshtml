@@ -1,0 +1,304 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý khuyến mãi & Voucher";
+}
+
+<div class="card p-4 bg-white">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">QUẢN LÝ KHUYẾN MÃI & VOUCHER</h4>
+            <p class="text-muted small mb-0">Thiết lập chương trình giảm giá tự động hoặc tạo mã Voucher giới hạn cho ngày hội mua sắm.</p>
+        </div>
+        <button class="btn btn-dark btn-sm px-3 rounded-pill fw-medium" data-bs-toggle="modal" data-bs-target="#promoModal">
+            <i class="bi bi-plus-circle me-1"></i> Tạo mã khuyến mãi
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Mã ID</th>
+                    <th>Tên Chương Trình</th>
+                    <th>Mã Code (Voucher)</th>
+                    <th>Hình Thức Giảm</th>
+                    <th>Trị Giá</th>
+                    <th>Thời Hạn Áp Dụng</th>
+                    <th class="text-center">Đã Dùng / Tổng</th>
+                    <th class="text-center">Trạng Thái</th>
+                    <th class="text-center">Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="promoTableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="promoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-dark">THIẾT LẬP CHƯƠNG TRÌNH KHUYẾN MÃI MỚI</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createPromoForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tên chương trình khuyến mãi *</label>
+                            <input type="text" class="form-control form-control-sm" id="formTen" required placeholder="Ví dụ: Giảm giá Giáng Sinh" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Mã Code nhập (Voucher)</label>
+                            <input type="text" class="form-control form-control-sm" id="formMaCode" placeholder="Ví dụ: WINTER20 (Bỏ trống nếu tự động giảm)" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Hình thức giảm giá *</label>
+                            <select class="form-select form-select-sm" id="formLoaiGiamGia">
+                                <option value="1">Giảm theo phần trăm (%)</option>
+                                <option value="0">Trừ thẳng tiền mặt (đ)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Mức giá trị giảm *</label>
+                            <input type="number" class="form-control form-control-sm" id="formGiaTriGiam" required min="1" placeholder="Ví dụ: 20 hoặc 50000" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Mức giảm tối đa (Trần %)</label>
+                            <input type="number" class="form-control form-control-sm" id="formGiamToiDa" value="0" min="0" placeholder="0 nếu không giới hạn trần" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Phạm vi áp dụng ưu đãi *</label>
+                            <select class="form-select form-select-sm" id="formPhamVi">
+                                <option value="all">Toàn bộ cửa hàng (Toàn sàn)</option>
+                                <option value="category">Áp dụng theo Danh mục sản phẩm</option>
+                                <option value="product">Áp dụng cho Sản phẩm cụ thể</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 d-none" id="divCategorySelect">
+                            <label class="form-label small fw-bold">Chọn danh mục sản phẩm *</label>
+                            <select class="form-select form-select-sm" id="formDanhMucId"></select>
+                        </div>
+
+                        <div class="col-12 d-none" id="divProductSelect">
+                            <label class="form-label small fw-bold">Chọn các sản phẩm áp dụng * (Giữ Ctrl để chọn nhiều)</label>
+                            <select class="form-select form-select-sm" id="formSanPhamIds" multiple style="height: 150px;"></select>
+                            <small class="text-muted d-block mt-1">Mã giảm giá sẽ chỉ có hiệu lực với các sản phẩm được bôi xanh ở trên.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Giá trị đơn hàng tối thiểu *</label>
+                            <input type="number" class="form-control form-control-sm" id="formGiaTriToiThieuApDung" value="0" min="0" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Tổng số lượng mã phát hành *</label>
+                            <input type="number" class="form-control form-control-sm" id="formSoLuongToiDa" value="100" min="1" required />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Ngày bắt đầu áp dụng *</label>
+                            <input type="datetime-local" class="form-control form-control-sm" id="formNgayApDung" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Ngày kết thúc thời hạn *</label>
+                            <input type="datetime-local" class="form-control form-control-sm" id="formNgayKetThuc" required />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">Mô tả ngắn</label>
+                            <textarea class="form-control form-control-sm" id="formMoTa" rows="2" placeholder="Nội dung hiển thị cho khách hàng đọc..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-dark btn-sm px-4 fw-medium">Lưu và kích hoạt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#menu-promotions').addClass('active');
+
+            // Thiết lập mặc định thời gian cho form tạo mới
+            const today = new Date().toISOString().slice(0, 16);
+            $('#formNgayApDung').val(today);
+
+            loadPromotions();
+
+            // NẠP TÀI NGUYÊN DANH MỤC & SẢN PHẨM KHI TRANG TRỰC TUYẾN KHỞI CHẠY
+            $.get('/api/admin/promotions/resources', function(res) {
+                // Nạp danh mục vào select
+                let catHtml = '<option value="">-- Chọn danh mục sản phẩm --</option>';
+                res.categories.forEach(c => {
+                    catHtml += `<option value="${c.danhMucID}">${c.ten}</option>`;
+                });
+                $('#formDanhMucId').html(catHtml);
+
+                // Nạp sản phẩm vào select multiple
+                let prodHtml = '';
+                res.products.forEach(p => {
+                    prodHtml += `<option value="${p.sanPhamID}">[${p.sanPhamID}] - ${p.ten}</option>`;
+                });
+                $('#formSanPhamIds').html(prodHtml);
+            });
+
+            // Điều khiển ẩn hiện các ô chọn dựa theo Phạm vi áp dụng công khai
+            $('#formPhamVi').change(function() {
+                const val = $(this).val();
+                if (val === 'category') {
+                    $('#divCategorySelect').removeClass('d-none');
+                    $('#divProductSelect').addClass('d-none');
+                } else if (val === 'product') {
+                    $('#divProductSelect').removeClass('d-none');
+                    $('#divCategorySelect').addClass('d-none');
+                } else {
+                    $('#divCategorySelect').addClass('d-none');
+                    $('#divProductSelect').addClass('d-none');
+                }
+            });
+
+            // 1. Hàm gọi API lấy danh sách khuyến mãi
+            function loadPromotions() {
+                $('#promoTableBody').html('<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang tải danh sách ưu đãi...</td></tr>');
+                $.get('/api/admin/promotions', function(data) {
+                    let html = '';
+                    if(data.length === 0) {
+                        html = '<tr><td colspan="9" class="text-center py-4 text-muted">Chưa có chương trình khuyến mãi nào được tạo.</td></tr>';
+                    } else {
+                        data.forEach(promo => {
+                            const isActived = promo.trangThai === "Hoạt động";
+                            const valBadge = promo.loaiGiamGia.includes("%") ? `${promo.giaTriGiam}%` : `${promo.giaTriGiam.toLocaleString('vi-VN')}đ`;
+
+                            html += `
+                                <tr>
+                                    <td class="text-secondary small font-monospace fw-bold">${promo.khuyenMaiId}</td>
+                                    <td class="fw-medium text-dark">${promo.ten}</td>
+                                    <td><span class="badge bg-light text-dark border font-monospace px-2 py-1">${promo.maCode}</span></td>
+                                    <td class="small">${promo.loaiGiamGia}</td>
+                                    <td class="fw-bold text-danger">${valBadge}</td>
+                                    <td class="small">
+                                        ${new Date(promo.ngayApDung).toLocaleDateString('vi-VN')} - ${new Date(promo.ngayKetThuc).toLocaleDateString('vi-VN')}
+                                    </td>
+                                    <td class="text-center small fw-medium">${promo.soLuongDaDung} / ${promo.soLuongToiDa}</td>
+                                    <td class="text-center">
+                                        <div class="form-check form-switch d-inline-block">
+                                            <input class="form-check-input btn-toggle-promo" type="checkbox" data-id="${promo.khuyenMaiId}" ${isActived ? 'checked' : ''}>
+                                            <label class="form-check-label small fw-bold ${isActived ? 'text-success' : 'text-danger'}">${promo.trangThai}</label>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-promo" data-id="${promo.khuyenMaiId}"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>`;
+                        });
+                    }
+                    $('#promoTableBody').html(html);
+                });
+            }
+
+            // 2. Xử lý Bật/Tắt nhanh trạng thái hoạt động bằng switch gạt
+            $(document).on('change', '.btn-toggle-promo', function() {
+                const checkbox = $(this);
+                const promoId = checkbox.data('id');
+
+                $.ajax({
+                    url: `/api/admin/promotions/${promoId}/toggle-status`,
+                    type: 'PUT',
+                    success: function(res) {
+                        const label = checkbox.closest('.form-check').find('.form-check-label');
+                        label.text(res.currentStatus);
+                        if(res.currentStatus === "Hoạt động") {
+                            label.removeClass('text-danger').addClass('text-success');
+                        } else {
+                            label.removeClass('text-success').addClass('text-danger');
+                        }
+                    },
+                    error: function() {
+                        alert("Không thể chuyển đổi trạng thái khuyến mãi.");
+                        checkbox.prop('checked', !checkbox.is(':checked'));
+                    }
+                });
+            });
+
+            // 3. Xử lý gửi Form tạo mới mã giảm giá (POST)
+            $('#createPromoForm').submit(function(e) {
+                e.preventDefault();
+
+                // Lấy mảng các sản phẩm được chọn nếu chọn hình thức đa sản phẩm
+                let selectedProductIds = [];
+                if ($('#formPhamVi').val() === 'product') {
+                    selectedProductIds = $('#formSanPhamIds').val() || [];
+                    if(selectedProductIds.length === 0) {
+                        alert("Vui lòng chọn ít nhất một sản phẩm!");
+                        return;
+                    }
+                }
+
+                if ($('#formPhamVi').val() === 'category' && !$('#formDanhMucId').val()) {
+                    alert("Vui lòng chọn danh mục sản phẩm áp dụng!");
+                    return;
+                }
+
+                const payload = {
+                    ten: $('#formTen').val(),
+                    maCode: $('#formMaCode').val(),
+                    moTa: $('#formMoTa').val(),
+                    loaiGiamGia: parseInt($('#formLoaiGiamGia').val()),
+                    giaTriGiam: parseFloat($('#formGiaTriGiam').val()),
+                    giamToiDa: parseFloat($('#formGiamToiDa').val()),
+                    giaTriToiThieuApDung: parseFloat($('#formGiaTriToiThieuApDung').val()),
+                    soLuongToiDa: parseInt($('#formSoLuongToiDa').val()),
+                    ngayApDung: new Date($('#formNgayApDung').val()).toISOString(),
+                    ngayKetThuc: new Date($('#formNgayKetThuc').val()).toISOString(),
+                    // Thu thập 3 trường mới nâng cấp
+                    phamVi: $('#formPhamVi').val(),
+                    danhMucId: $('#formDanhMucId').val() || null,
+                    sanPhamIds: selectedProductIds
+                };
+
+                $.ajax({
+                    url: '/api/admin/promotions',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function() {
+                        $('#promoModal').modal('hide');
+                        $('#createPromoForm')[0].reset();
+                        $('#formPhamVi').val('all').trigger('change'); // reset trạng thái ô chọn phạm vi
+                        loadPromotions();
+                    },
+                    error: function(err) {
+                        alert(err.responseJSON?.message || "Lỗi tạo chương trình ưu đãi.");
+                    }
+                });
+            });
+
+            // 4. Xử lý xóa mã giảm giá (DELETE) kèm chặn ràng buộc từ Backend
+            $(document).on('click', '.btn-delete-promo', function() {
+                const promoId = $(this).data('id');
+                if(!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn mã giảm giá này không?")) return;
+
+                $.ajax({
+                    url: `/api/admin/promotions/${promoId}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        loadPromotions();
+                    },
+                    error: function(err) {
+                        // Hiện thông báo lỗi kinh tế nếu mã đã có người xài
+                        alert(err.responseJSON?.message || "Lỗi không thể xóa chương trình.");
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,315 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý thuộc tính sản phẩm";
+}
+
+<div class="card p-4 bg-white">
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-1">QUẢN LÝ THUỘC TÍNH SẢN PHẨM</h4>
+            <p class="text-muted small mb-0">Cấu hình nhanh thông số nền tảng hỗ trợ phân loại hàng hóa trong toàn bộ hệ thống cửa hàng.</p>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 p-1 bg-light rounded-3 shadow-sm style-tabs" id="attributeTabs" role="tablist" style="max-width: 750px;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold py-2" data-bs-toggle="tab" data-bs-target="#tab-categories" type="button" data-type="categories"><i class="bi bi-folder-fill me-2"></i>Danh mục</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2" data-bs-toggle="tab" data-bs-target="#tab-brands" type="button" data-type="brands"><i class="bi bi-award-fill me-2"></i>Thương hiệu</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2" data-bs-toggle="tab" data-bs-target="#tab-colors" type="button" data-type="colors"><i class="bi bi-palette-fill me-2"></i>Màu sắc</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold py-2" data-bs-toggle="tab" data-bs-target="#tab-sizes" type="button" data-type="sizes"><i class="bi bi-ruler me-2"></i>Kích cỡ</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="attributeTabsContent">
+        <div class="tab-pane fade show active" id="tab-categories" role="tabpanel">
+            <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="categories"><i class="bi bi-plus-circle me-1"></i>Thêm danh mục</button></div>
+            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Danh Mục</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-categories-body"></tbody></table></div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-brands" role="tabpanel">
+            <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="brands"><i class="bi bi-plus-circle me-1"></i>Thêm thương hiệu</button></div>
+            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Logo</th><th>Mã ID</th><th>Tên Thương Hiệu</th><th>Mô Tả ngắn</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-brands-body"></tbody></table></div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-colors" role="tabpanel">
+            <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="colors"><i class="bi bi-plus-circle me-1"></i>Thêm màu sắc</button></div>
+            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Màu Sắc</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-colors-body"></tbody></table></div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-sizes" role="tabpanel">
+            <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="sizes"><i class="bi bi-plus-circle me-1"></i>Thêm kích cỡ</button></div>
+            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Kích Cỡ</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-sizes-body"></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="attrModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-dark" id="modalAttrTitle">TIÊU ĐỀ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="attrForm">
+                <input type="hidden" id="attrActionType" /> <input type="hidden" id="attrId" /> <div class="modal-body row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold" id="lblAttrName">Tên gọi *</label>
+                        <input type="text" class="form-control form-control-sm" id="attrName" required />
+                    </div>
+                    <div class="col-12 d-none div-brand-only">
+                        <label class="form-label small fw-bold">Logo thương hiệu *</label>
+                        <input type="file" class="form-control form-control-sm" id="attrBrandLogoFile" accept="image/*" />
+
+                        <div id="divBrandLogoPreview" class="mt-2 d-none">
+                            <span class="d-block small text-muted mb-1">Ảnh hiện tại / Xem trước:</span>
+                            <img id="imgBrandLogoPreview" src="" style="height: 60px; object-fit: cover;" class="rounded border shadow-sm" />
+                        </div>
+                    </div>
+                    <div class="col-12 d-none div-brand-only">
+                        <label class="form-label small fw-bold">Mô tả thương hiệu</label>
+                        <textarea class="form-control form-control-sm" id="attrBrandDesc" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-dark btn-sm px-4 fw-medium">Xác nhận Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#menu-attributes').addClass('active');
+
+            // Định nghĩa bản đồ cấu hình ánh xạ chuẩn khớp 100% với các API C# của bạn
+            const config = {
+                categories: { url: '/api/admin/categories', idProp: 'danhMucID', nameProp: 'ten' },
+                brands:     { url: '/api/admin/brands',     idProp: 'thuongHieuID', nameProp: 'ten' },
+                colors:     { url: '/api/admin/colors',     idProp: 'mauID',     nameProp: 'ten' },
+                sizes:      { url: '/api/admin/sizes',      idProp: 'kichCoID',  nameProp: 'ten' }
+            };
+
+            // Hàm tải danh sách dùng chung cho cả 4 tab
+            function loadAttributeData(type) {
+                const targetBody = $(`#table-${type}-body`);
+                targetBody.html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang đồng bộ dữ liệu...</td></tr>');
+
+                $.get(config[type].url, function(data) {
+                    let html = '';
+                    if(!data || data.length === 0) {
+                        const colspan = type === 'brands' ? 5 : 3;
+                        html = `<tr><td colspan="${colspan}" class="text-center py-4 text-muted">Chưa tồn tại dữ liệu.</td></tr>`;
+                    } else {
+                        data.forEach(item => {
+                            const id = item[config[type].idProp];
+                            const name = item[config[type].nameProp];
+
+                            if(type === 'brands') {
+                                html += `<tr>
+                                    <td><img src="${item.logoURL || '/images/default-logo.png'}" style="height:30px;width:30px;object-fit:cover;" class="rounded border bg-light" onerror="this.src='/images/default-logo.png'"/></td>
+                                    <td class="font-monospace small text-secondary fw-bold">${id}</td>
+                                    <td class="fw-bold text-dark">${name}</td>
+                                    <td class="text-muted small">${item.moTa || 'Không có mô tả'}</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-sm btn-outline-dark btn-edit-attr" data-type="brands" data-id="${id}" data-name="${name}" data-logo="${item.logoURL}" data-desc="${item.moTa}"><i class="bi bi-pencil-square"></i></button>
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="brands" data-id="${id}"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>`;
+                            } else {
+                                html += `<tr>
+                                    <td class="font-monospace small text-secondary fw-bold">${id}</td>
+                                    <td class="fw-bold text-dark">${name}</td>
+                                    <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-dark btn-edit-attr"
+                data-type="brands"
+                data-id="${id}"
+                data-name="${name}"
+                data-logo="${item.logoURL}"
+                data-desc="${item.moTa}">
+            <i class="bi bi-pencil-square"></i>
+        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="${type}" data-id="${id}"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>`;
+                            }
+                        });
+                    }
+                    targetBody.html(html);
+                });
+            }
+
+            // Lắng nghe sự kiện chuyển gạt Tab để nạp dữ liệu động chống quá tải
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                const type = $(e.target).data('type');
+                loadAttributeData(type);
+            });
+
+            // Nạp mặc định Tab danh mục khi vừa mở trang lên
+            loadAttributeData('categories');
+
+            // MỞ MODAL THÊM MỚI
+            $(document).on('click', '.btn-add-attr', function() {
+                const type = $(this).data('type');
+                $('#attrForm')[0].reset();
+                $('#attrId').val('');
+                $('#attrActionType').val(type);
+
+                // Thiết lập nhãn hiển thị linh hoạt theo ngữ cảnh
+                $('.div-brand-only').addClass('d-none');
+                if(type === 'categories') { $('#modalAttrTitle').text('THÊM DANH MỤC MỚI'); $('#lblAttrName').text('Tên Danh Mục *'); }
+                else if(type === 'colors') { $('#modalAttrTitle').text('THÊM MÀU SẮC MỚI'); $('#lblAttrName').text('Tên Màu Sắc *'); }
+                else if(type === 'sizes') { $('#modalAttrTitle').text('THÊM KÍCH CỠ MỚI'); $('#lblAttrName').text('Kích cỡ (Ví dụ: M, L, XL) *'); }
+                else if(type === 'brands') {
+                    $('#modalAttrTitle').text('THÊM THƯƠNG HIỆU MỚI'); $('#lblAttrName').text('Tên Thương Hiệu *');
+                    $('.div-brand-only').removeClass('d-none');
+                }
+                
+                $('#attrModal').modal('show');
+            });
+
+                    // MỞ MODAL ĐIỀU CHỈNH THÔNG TIN (EDIT THUỘC TÍNH)
+        $(document).on('click', '.btn-edit-attr', function() {
+            const type = $(this).data('type');
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+
+            $('#attrForm')[0].reset();
+            $('#attrId').val(id);
+            $('#attrActionType').val(type);
+            $('#attrName').val(name);
+
+            // Ẩn toàn bộ các trường mở rộng của thương hiệu mặc định, reset khung ảnh preview
+            $('.div-brand-only').addClass('d-none');
+            $('#divBrandLogoPreview').addClass('d-none');
+            $('#imgBrandLogoPreview').attr('src', '');
+
+            if (type === 'categories') {
+                $('#modalAttrTitle').text(`CẬP NHẬT DANH MỤC [${id}]`);
+                $('#lblAttrName').text('Tên Danh Mục *');
+            }
+            else if (type === 'colors') {
+                $('#modalAttrTitle').text(`CẬP NHẬT MÀU SẮC [${id}]`);
+                $('#lblAttrName').text('Tên Màu Sắc *');
+            }
+            else if (type === 'sizes') {
+                $('#modalAttrTitle').text(`CẬP NHẬT KÍCH CỠ [${id}]`);
+                $('#lblAttrName').text('Tên Kích Cỡ *');
+            }
+            else if (type === 'brands') {
+                $('#modalAttrTitle').text(`CẬP NHẬT THƯƠNG HIỆU [${id}]`);
+                $('#lblAttrName').text('Tên Thương Hiệu *');
+                $('.div-brand-only').removeClass('d-none');
+
+                // Điền mô tả cũ vào textarea
+                $('#attrBrandDesc').val($(this).data('desc'));
+
+                // BÓC ẢNH CŨ HIỂN THỊ LÊN: Lấy link ảnh từ data-logo gắn ở dòng của bảng dữ liệu
+                const oldLogoUrl = $(this).data('logo');
+                if (oldLogoUrl) {
+                    $('#imgBrandLogoPreview').attr('src', oldLogoUrl);
+                    $('#divBrandLogoPreview').removeClass('d-none'); // Mở đèn cho khung preview sáng lên
+                }
+            }
+
+            $('#attrModal').modal('show');
+        });
+
+                    // XỬ LÝ LƯU DỮ LIỆU ĐỘNG (HỖ TRỢ CẢ THÊM MỚI VÀ CẬP NHẬT)
+        $('#attrForm').submit(function(e) {
+            e.preventDefault();
+            const type = $('#attrActionType').val();
+            const id = $('#attrId').val();
+
+            let url = config[type].url;
+            let method = 'POST';
+            if (id) {
+                url += `/${id}`;
+                method = 'PUT'; // Chuyển sang luồng sửa nếu có ID
+            }
+
+            // TẠO BIẾN GỬI DỮ LIỆU ĐA DẠNG (Bắt đầu phân tách luồng)
+            let sendData;
+            let contentTypeOption;
+            let processDataOption;
+
+            if (type === 'brands') {
+                // NẾU LÀ THƯƠNG HIỆU: Sử dụng FormData để bốc file ảnh gửi lên Backend [FromForm]
+                var formData = new FormData();
+                formData.append("Ten", $('#attrName').val());
+                formData.append("MoTa", $('#attrBrandDesc').val() || '');
+
+                // Bốc file từ thẻ input file vừa sửa ở bước 2.1
+                var fileInput = $('#attrBrandLogoFile')[0].files[0];
+                if (fileInput) {
+                    formData.append("LogoFile", fileInput);
+                } else if (!id) {
+                    alert("Vui lòng chọn file Logo cho thương hiệu mới!");
+                    return;
+                }
+
+                // Với luồng HTTP PUT (Sửa) trong ASP.NET Core MVC khi truyền FormData,
+                // đôi khi một số server cấu hình chặn FromForm ở phương thức PUT.
+                // Để an toàn 100%, ta giữ nguyên URL/Method của API và cấu hình Ajax truyền tải FormData:
+                sendData = formData;
+                contentTypeOption = false; // Bắt buộc khi truyền file
+                processDataOption = false; // Bắt buộc khi truyền file
+            } else {
+                // CÁC TAB KHÁC (Danh mục, Màu, Size): Giữ nguyên cơ chế gửi chuỗi JSON gọn nhẹ [FromBody]
+                let payload = { ten: $('#attrName').val() };
+                sendData = JSON.stringify(payload);
+                contentTypeOption = 'application/json';
+                processDataOption = true;
+            }
+
+            $.ajax({
+                url: url,
+                type: method,
+                data: sendData,
+                contentType: contentTypeOption,
+                processData: processDataOption,
+                success: function(res) {
+                    $('#attrModal').modal('hide');
+                    // Reset lại khung preview ảnh
+                    $('#divBrandLogoPreview').addClass('d-none');
+                    $('#imgBrandLogoPreview').attr('src', '');
+                    $('#attrBrandLogoFile').val('');
+
+                    loadAttributeData(type); // Tải lại bảng ngay lập tức
+                },
+                error: function(err) {
+                    alert(err.responseJSON?.message || "Xảy ra lỗi trong quá trình thực thi đồng bộ.");
+                }
+            });
+        });
+
+            // XỬ LÝ LỆNH XÓA (DELETE) - KIỂM TRA RÀNG BUỘC KHOÁ NGOẠI TỪ BACKEND CỦA BẠN
+            $(document).on('click', '.btn-delete-attr', function() {
+                const type = $(this).data('type');
+                const id = $(this).data('id');
+
+                if(!confirm(`Hệ thống cảnh báo: Bạn có chắc chắn muốn xoá vĩnh viễn mã dữ liệu [${id}] này không?`)) return;
+
+                $.ajax({
+                    url: `${config[type].url}/${id}`,
+                    type: 'DELETE',
+                    success: function(res) {
+                        loadAttributeData(type);
+                    },
+                    error: function(err) {
+                        // Backend của bạn sẽ ném lỗi 400 BadRequest vào đây nếu Thuộc tính này đang bị sản phẩm dùng
+                        alert(err.responseJSON?.message || "Từ chối thực thi: Thuộc tính này đang được áp dụng cho sản phẩm trong hệ thống!");
+                    }
+                });
+            });
+        });
+    </script>
+}

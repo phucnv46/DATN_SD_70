@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<section id="cartPage" class="py-5 bg-light min-vh-100">
+    <div class="container">
+
+        <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+            <div>
+                <h1 class="fw-bold text-dark fs-3 mb-1" style="font-family: 'Space Grotesk', sans-serif;">GIỎ HÀNG CỦA BẠN</h1>
+                <p class="text-muted small mb-0">Đang có <span id="cartHeadCount" class="fw-bold text-danger">0</span> sản phẩm trong giỏ hàng.</p>
+            </div>
+            <a href="/Home/Products" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-medium small">
+                <i class="bi bi-arrow-left me-1"></i> Tiếp tục mua sắm
+            </a>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+                <div id="cartItemsContainer" class="d-flex flex-column gap-3 mb-4">
+                    <div class="text-center py-5 bg-white rounded-4 shadow-sm border">
+                        <div class="spinner-border spinner-border-sm text-secondary mb-2" role="status"></div>
+                        <div class="text-muted small">Đang kết nối giỏ hàng của bạn...</div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <label class="form-label fw-bold small text-secondary text-uppercase mb-2" for="cartOrderNote">
+                        <i class="bi bi-pencil-square me-2"></i>Ghi chú đơn hàng
+                    </label>
+                    <textarea id="cartOrderNote" class="form-control border-secondary-subtle rounded-3 small text-secondary p-3" rows="4" placeholder="Nhập ghi chú giao hàng, thời gian nhận hàng hoặc các yêu cầu đặc biệt khác cho shop..."></textarea>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white position-sticky" style="top: 100px;">
+                    <h2 class="fw-bold fs-5 text-dark border-bottom pb-3 mb-3 text-uppercase" style="font-family: 'Space Grotesk', sans-serif;">Thông tin thanh toán</h2>
+
+                    <div class="d-flex flex-column gap-3 mb-4 border-bottom pb-3">
+                        <div class="d-flex justify-content-between align-items-center small text-secondary">
+                            <span>Tạm tính</span>
+                            <strong id="cartSubtotalAmount" class="text-dark fw-semibold">0 đ</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small text-secondary">
+                            <span>Giảm giá voucher</span>
+                            <span id="cartDiscountAmount" class="text-success fw-semibold">0 đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            <span class="fw-bold text-dark fs-6">Tổng tiền</span>
+                            <strong id="cartTotalAmount" class="text-danger fw-extrabold fs-4">0 đ</strong>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-secondary border-0 rounded-3 small text-muted p-3 mb-4" style="line-height: 1.6;">
+                        <p class="mb-1 d-flex align-items-start gap-2"><i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i> <span>Phí vận chuyển và mã giảm giá chính thức sẽ được áp dụng tại bước thanh toán tiếp theo.</span></p>
+                        <p class="mb-0 d-flex align-items-start gap-2"><i class="bi bi-trash-fill mt-1 flex-shrink-0"></i> <span>Nếu giảm số lượng sản phẩm về số 0, hệ thống sẽ yêu cầu xác nhận xóa món đồ đó.</span></p>
+                    </div>
+
+                    <a id="cartCheckoutLink" class="btn btn-dark w-100 py-3 rounded-3 fw-bold text-uppercase fs-6 shadow-sm d-flex align-items-center justify-content-center gap-2" asp-controller="Home" asp-action="Checkout">
+                        Tiến hành thanh toán <i class="bi bi-arrow-right-short fs-5"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<style>
+    .fw-extrabold {
+        font-weight: 800;
+    }
+</style>

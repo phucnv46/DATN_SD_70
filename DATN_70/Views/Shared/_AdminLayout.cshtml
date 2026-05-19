@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Hệ thống Quản trị</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .admin-sidebar {
+            min-width: 260px;
+            max-width: 260px;
+            min-height: 100vh;
+            background: #1e1e2d;
+            color: #a2a3b7;
+            transition: all 0.3s;
+        }
+
+            .admin-sidebar .nav-link {
+                color: #a2a3b7;
+                padding: 12px 25px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition: all 0.2s;
+            }
+
+                .admin-sidebar .nav-link:hover, .admin-sidebar .nav-link.active {
+                    background: #1b1b28;
+                    color: #ffffff;
+                }
+
+                .admin-sidebar .nav-link.active {
+                    border-left: 4px solid #377dff;
+                }
+
+        .admin-topbar {
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,.04);
+            padding: 15px 30px;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,.05);
+            border-radius: 10px;
+        }
+
+        .table th {
+            background-color: #f3f6f9;
+            color: #464e5f;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-pending {
+            background-color: #fff4de;
+            color: #ffb822;
+        }
+
+        .badge-confirmed {
+            background-color: #e1f0ff;
+            color: #3699ff;
+        }
+
+        .badge-preparing {
+            background-color: #e8fff3;
+            color: #50cd89;
+        }
+
+        .badge-shipping {
+            background-color: #eeeaff;
+            color: #7239ea;
+        }
+
+        .badge-success {
+            background-color: #e8fff3;
+            color: #50cd89;
+        }
+
+        .badge-cancelled {
+            background-color: #fff1f1;
+            color: #f52222;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex">
+        <aside class="admin-sidebar d-flex flex-column">
+            <div class="p-4 border-bottom border-secondary text-center">
+                <h4 class="text-white fw-bold mb-0">WINTER ADMIN</h4>
+                <small class="text-muted text-uppercase tracking-wider">Bảng điều khiển</small>
+            </div>
+
+            <nav class="nav flex-column mt-3 flex-grow-1">
+                <a href="/Admin/Orders" id="menu-orders" class="nav-link"><i class="bi bi-receipt"></i> Quản lý hóa đơn</a>
+                <a href="/Admin/Products" id="menu-products" class="nav-link"><i class="bi bi-box-seam"></i> Quản lý sản phẩm</a>
+                <a href="/Admin/Attributes" id="menu-attributes" class="nav-link"><i class="bi bi-sliders"></i> Thuộc tính sản phẩm</a>
+                <a href="/Admin/Accounts" id="menu-accounts" class="nav-link"><i class="bi bi-people"></i> Quản lý tài khoản</a>
+                <a href="/Admin/Promotions" id="menu-promotions" class="nav-link"><i class="bi bi-tags"></i> Quản lý khuyến mãi</a>
+
+                <a href="/Admin/POS" id="menu-pos" class="nav-link text-warning"><i class="bi bi-cpu-fill text-success"></i> <strong>Bán hàng tại quầy (POS)</strong></a>
+
+                <a href="/Home/Index" class="nav-link border-top border-secondary mt-auto"><i class="bi bi-arrow-left-square"></i> Xem Cửa hàng</a>
+            </nav>
+        </aside>
+
+        <div class="flex-grow-1 d-flex flex-column">
+            <header class="admin-topbar d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-dark">Hệ thống quản trị nội bộ</h5>
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm dropdown-toggle fw-medium" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle me-1"></i> Quản trị viên
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-menu-item text-danger px-3 py-2 d-block text-decoration-none small" href="/Account/Logout"><i class="bi bi-box-arrow-right me-1"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </header>
+
+            <main class="p-4 flex-grow-1">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Khóa chặn, hiển thị hộp hội thoại xác nhận trước khi nhảy trang POS tràn màn hình
+            $('#menu-pos').click(function(e) {
+                const confirmBox = confirm("Hệ thống cảnh báo:\nBạn có chắc chắn muốn tiến vào Không gian Bán hàng tại quầy (POS) không?\n\nGiao diện sẽ tự động tối ưu tràn toàn màn hình để phục vụ ca trực thu ngân.");
+
+                if (!confirmBox) {
+                    e.preventDefault(); // Nếu nhân viên ấn 'Hủy' (Cancel) thì giữ lại layout cũ
+                }
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+http://googleusercontent.com/immersive_entry_chip/0

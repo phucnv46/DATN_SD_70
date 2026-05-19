@@ -1,0 +1,171 @@
+﻿@model DATN_70.Models.ViewModels.AccountAddressPageViewModel
+@{
+    ViewData["Title"] = "Địa chỉ giao hàng";
+    bool isEditing = !string.IsNullOrWhiteSpace(Model.Form?.Id);
+}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group shadow-sm border-0">
+                <a href="/Account/Profile" class="list-group-item list-group-item-action">
+                    <i class="bi bi-person me-2"></i> Tài khoản của tôi
+                </a>
+                <a href="/Account/Orders" class="list-group-item list-group-item-action">
+                    <i class="bi bi-bag me-2"></i> Đơn hàng của tôi
+                </a>
+                <a href="/Account/Addresses" class="list-group-item list-group-item-action active bg-dark border-dark">
+                    <i class="bi bi-geo-alt me-2"></i> Địa chỉ giao hàng
+                </a>
+                <a href="/Account/Password" class="list-group-item list-group-item-action">
+                    <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu
+                </a>
+                <a href="/Account/Logout" class="list-group-item list-group-item-action text-danger border-top">
+                    <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0 p-4 bg-white rounded">
+                <div class="border-bottom pb-3 mb-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold text-uppercase">Địa chỉ của tôi</h4>
+                        <p class="text-muted small mb-0">Quản lý danh sách các địa chỉ nhận hàng của bạn.</p>
+                    </div>
+                    @if (isEditing)
+                    {
+                        <a href="/Account/Addresses" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
+                        </a>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i> @Model.StatusMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="row g-4">
+                    <div class="col-lg-5 order-lg-2">
+                        <div class="p-3 border rounded bg-light-soft">
+                            <h6 class="fw-bold text-uppercase mb-3">
+                                @(isEditing ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới")
+                            </h6>
+
+                            <form asp-controller="Account" asp-action="SaveAddress" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="Form.Id" />
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-medium" asp-for="Form.RecipientName">Tên người nhận</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="Form.RecipientName" placeholder="Họ và tên" />
+                                    <span asp-validation-for="Form.RecipientName" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-medium" asp-for="Form.Phone">Số điện thoại</label>
+                                    <input type="tel" class="form-control form-control-sm" asp-for="Form.Phone" placeholder="Số điện thoại nhận hàng" />
+                                    <span asp-validation-for="Form.Phone" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-medium" asp-for="Form.Province">Tỉnh / Thành phố</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Province" placeholder="Ví dụ: Hà Nội" />
+                                    <span asp-validation-for="Form.Province" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-medium" asp-for="Form.District">Quận / Huyện</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="Form.District" placeholder="Ví dụ: Cầu Giấy" />
+                                    <span asp-validation-for="Form.District" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-medium" asp-for="Form.Ward">Phường / Xã</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Ward" placeholder="Ví dụ: Dịch Vọng" />
+                                    <span asp-validation-for="Form.Ward" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-medium" asp-for="Form.Street">Địa chỉ chi tiết (Số nhà, đường)</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Street" placeholder="Ví dụ: 144 Nam Kỳ Khởi Nghĩa" />
+                                    <span asp-validation-for="Form.Street" class="text-danger small"></span>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" asp-for="Form.IsDefault" />
+                                    <label class="form-check-label small" asp-for="Form.IsDefault">Đặt làm địa chỉ mặc định</label>
+                                </div>
+
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-dark btn-sm fw-medium">
+                                        @(isEditing ? "Cập nhật" : "Lưu địa chỉ")
+                                    </button>
+                                    @if (isEditing)
+                                    {
+                                        <a href="/Account/Addresses" class="btn btn-outline-secondary btn-sm">Hủy bỏ</a>
+                                    }
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7 order-lg-1">
+                        @if (Model.Addresses == null || !Model.Addresses.Any())
+                        {
+                            <div class="text-center py-5 border rounded bg-light">
+                                <i class="bi bi-geo text-muted fs-2"></i>
+                                <p class="text-muted small mt-2 mb-0">Bạn chưa lưu địa chỉ nhận hàng nào.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            foreach (var address in Model.Addresses)
+                            {
+                                <div class="p-3 border rounded mb-3 bg-white shadow-xs position-relative @(address.IsDefault ? "border-dark" : "")">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <span class="fw-bold text-dark me-2">@address.RecipientName</span>
+                                            @if (address.IsDefault)
+                                            {
+                                                <span class="badge bg-dark-soft text-dark border small rounded-1 px-2 py-0.5">Mặc định</span>
+                                            }
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a href="/Account/Addresses?editId=@address.Id" class="btn btn-link btn-sm text-decoration-none p-0 text-secondary small">Sửa</a>
+
+                                            @if (!address.IsDefault)
+                                            {
+                                                <form asp-controller="Account" asp-action="DeleteAddress" asp-route-id="@address.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-danger small border-0 bg-transparent">Xóa</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="text-secondary small mb-1"><i class="bi bi-telephone me-1"></i> Điện thoại: @address.Phone</div>
+                                    <div class="text-secondary small"><i class="bi bi-geo-alt me-1"></i> Địa chỉ: @address.Street, @address.Ward, @address.District, @address.Province</div>
+
+                                    @if (!address.IsDefault)
+                                    {
+                                        <form asp-controller="Account" asp-action="SetDefaultAddress" asp-route-id="@address.Id" method="post" class="mt-2 pt-2 border-top">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-dark btn-xs rounded-1 py-1 px-2 small" style="font-size: 0.75rem;">
+                                                Đặt làm mặc định
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

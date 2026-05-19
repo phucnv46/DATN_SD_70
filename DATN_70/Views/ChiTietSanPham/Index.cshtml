@@ -1,0 +1,155 @@
+﻿@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    var productId = ViewData["ProductId"] as string ?? string.Empty;
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<section id="productDetailPage" class="py-5 bg-light min-vh-100" data-product-id="@productId">
+    <div class="container">
+
+        <nav aria-label="breadcrumb" class="mb-4">
+            <div id="detailBreadcrumb" class="p-3 bg-white rounded-3 shadow-sm small text-muted fw-medium">
+                Winter Shop / Sản phẩm
+            </div>
+        </nav>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center position-sticky" style="top: 100px;">
+                    <div id="detailArtwork" class="ratio ratio-1x1 bg-light rounded-4 overflow-hidden mb-3 d-flex align-items-center justify-content-center border">
+                        <div class="text-muted small">
+                            <div class="spinner-border spinner-border-sm text-secondary mb-2" role="status"></div>
+                            <div>Đang tải ảnh sản phẩm thời trang...</div>
+                        </div>
+                    </div>
+                    <div id="detailGalleryThumbs" class="d-flex justify-content-center gap-2 flex-wrap pt-2"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <h1 id="detailTitle" class="fw-bold text-dark fs-3 mb-2 text-uppercase" style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.5px;">
+                            Đang tải tên sản phẩm...
+                        </h1>
+
+                        <div class="d-flex align-items-center gap-3 my-3 border-bottom pb-3">
+                            <strong id="detailPrice" class="fs-2 text-danger fw-extrabold">0 đ</strong>
+                            <span id="detailOriginalPrice" class="text-muted text-decoration-line-through small fs-5"></span>
+                            <span id="detailDiscountBadge" class="badge bg-dark rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size: 0.75rem;"></span>
+                        </div>
+
+                        <div id="detailVariantSummary" class="alert alert-secondary border-0 rounded-3 small text-muted py-2 mb-4">
+                            Giá mặc định theo biến thể rẻ nhất khả dụng.
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase mb-2"><i class="bi bi-palette me-2"></i>Màu sắc lựa chọn</label>
+                            <div id="detailColorOptions" class="d-flex flex-wrap gap-2 option-grid"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-secondary text-uppercase mb-2"><i class="bi bi-ruler me-2"></i>Kích cỡ (Size)</label>
+                            <div id="detailSizeOptions" class="d-flex flex-wrap gap-2 option-grid"></div>
+                        </div>
+
+                        <div class="row align-items-center g-3 mb-4 bg-light p-3 rounded-3 mx-0">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-bold small text-secondary text-uppercase d-block mb-2">Số lượng mua</label>
+                                <div class="input-group" style="max-width: 140px;">
+                                    <button id="detailDecreaseQty" class="btn btn-outline-dark border-secondary px-3 fw-bold rounded-start-3" type="button">-</button>
+                                    <span id="detailQuantityValue" class="form-control text-center bg-white border-secondary fw-bold d-flex align-items-center justify-content-center" style="min-width: 45px;">1</span>
+                                    <button id="detailIncreaseQty" class="btn btn-outline-dark border-secondary px-3 fw-bold rounded-end-3" type="button">+</button>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 border-start-sm">
+                                <label class="form-label fw-bold small text-secondary text-uppercase d-block mb-1">Trạng thái kho</label>
+                                <div id="detailStockNote" class="fw-medium text-dark small"><i class="bi bi-box-seam me-1 text-muted"></i> Đang kiểm tra số lượng tồn...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button id="detailAddToCart" type="button" class="btn btn-outline-dark w-50 py-3 rounded-3 fw-bold text-uppercase fs-6 shadow-sm">
+                            <i class="bi bi-bag-plus me-2"></i>Thêm vào giỏ
+                        </button>
+                        <button id="detailBuyNow" type="button" class="btn btn-dark w-50 py-3 rounded-3 fw-bold text-uppercase fs-6 shadow-sm">
+                            Mua ngay đơn hàng
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mt-5">
+            <div class="detail-extra">
+                <div class="detail-tabs nav nav-pills gap-2 border-bottom pb-3 mb-4">
+                    <button type="button" class="detail-tab nav-link active btn-sm rounded-pill px-4 fw-bold text-uppercase" data-tab="description" style="font-size: 0.8rem;">Mô tả sản phẩm</button>
+                    <button type="button" class="detail-tab nav-link btn-sm rounded-pill px-4 fw-bold text-uppercase" data-tab="returns" style="font-size: 0.8rem;">Chính sách đổi trả</button>
+                    <button type="button" class="detail-tab nav-link btn-sm rounded-pill px-4 fw-bold text-uppercase" data-tab="warranty" style="font-size: 0.8rem;">Chính sách bảo mật</button>
+                </div>
+                <div id="detailTabContent" class="detail-tab-content text-secondary lh-lg small"></div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-dark">
+            <h2 class="fw-bold fs-4 mb-4 text-uppercase" style="font-family: 'Space Grotesk', sans-serif; border-left: 4px solid #1a1d20; padding-left: 12px;">Sản phẩm cùng loại</h2>
+
+            <div id="relatedProducts" class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-4">
+                <div class="col-12 text-center text-muted py-4 bg-white rounded-4 shadow-sm border">
+                    <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
+                    <div class="small">Đang tìm các sản phẩm liên quan phù hợp...</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    .fw-extrabold {
+        font-weight: 800;
+    }
+    /* Định dạng lại các nút chọn màu và size do site.js sinh ra */
+    .option-button {
+        padding: 8px 20px;
+        border: 1px solid #dee2e6;
+        background-color: #ffffff;
+        color: #212529;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border-radius: 8px;
+        transition: all 0.15s ease-in-out;
+    }
+
+        .option-button:hover {
+            border-color: #212529;
+            background-color: #f8f9fa;
+        }
+
+        .option-button.active {
+            border-color: #212529 !important;
+            background-color: #212529 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+    /* Style các nút tab */
+    .detail-tab.nav-link {
+        color: #6c757d;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+
+        .detail-tab.nav-link.active {
+            color: #ffffff !important;
+            background-color: #212529 !important;
+            border-color: #212529 !important;
+        }
+
+    @@media (min-width: 576px) {
+        .border-start-sm {
+            border-left: 1px solid #dee2e6 !important;
+        }
+    }
+</style>
