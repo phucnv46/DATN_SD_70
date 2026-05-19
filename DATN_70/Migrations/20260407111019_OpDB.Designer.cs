@@ -4,6 +4,7 @@ using DATN_70.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DATN_70.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260407111019_OpDB")]
+    partial class OpDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,79 +25,6 @@ namespace DATN_70.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.Banner", b =>
-                {
-                    b.Property<string>("BannerID")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("HinhAnhUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<bool>("KichHoat")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("LienKetUrl")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("MoTa")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<int>("ThuTu")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TieuDe")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("nvarchar(160)");
-
-                    b.HasKey("BannerID");
-
-                    b.ToTable("Banners");
-                });
-
-            modelBuilder.Entity("DATN_70.Models.Entities.ChiTietDoiTra", b =>
-                {
-                    b.Property<string>("ChiTietDoiTraID")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("ChiTietSanPhamID")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<decimal>("GiaTriHoanLai")
-                        .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
-
-                    b.Property<int>("LyDo")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PhieuDoiTraID")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<int>("SoLuongTra")
-                        .HasColumnType("int");
-
-                    b.HasKey("ChiTietDoiTraID");
-
-                    b.HasIndex("ChiTietSanPhamID");
-
-                    b.HasIndex("PhieuDoiTraID");
-
-                    b.ToTable("chiTietDoiTras");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.ChiTietGioHang", b =>
                 {
                     b.Property<string>("ChiTietGioHangID")
@@ -298,41 +228,6 @@ namespace DATN_70.Migrations
                     b.ToTable("GioHangs");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.HinhAnhSanPham", b =>
-                {
-                    b.Property<string>("HinhAnhID")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<bool>("IsMain")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("MauID")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("SanPhamID")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.HasKey("HinhAnhID");
-
-                    b.HasIndex("MauID");
-
-                    b.HasIndex("SanPhamID");
-
-                    b.ToTable("HinhAnhSanPhams");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.HoaDon", b =>
                 {
                     b.Property<string>("HoaDonID")
@@ -485,31 +380,10 @@ namespace DATN_70.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-<<<<<<< HEAD
-                    b.Property<decimal>("GiaTriGiam")
-                        .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Property<decimal>("GiaTriToiThieuApDung")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
 
-<<<<<<< HEAD
-                    b.Property<decimal>("GiamToiDa")
-                        .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
-
-                    b.Property<int>("LoaiGiamGia")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MaCode")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Property<string>("MoTa")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -521,17 +395,9 @@ namespace DATN_70.Migrations
                     b.Property<DateTime>("NgayKetThuc")
                         .HasColumnType("datetime2");
 
-<<<<<<< HEAD
-                    b.Property<int>("SoLuongDaDung")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SoLuongToiDa")
-                        .HasColumnType("int");
-=======
                     b.Property<decimal>("PhanTramChietKhau")
                         .HasPrecision(18)
                         .HasColumnType("decimal(18,0)");
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
                     b.Property<string>("Ten")
                         .IsRequired()
@@ -640,41 +506,6 @@ namespace DATN_70.Migrations
                     b.ToTable("NhanViens");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
-                {
-                    b.Property<string>("PhieuDoiTraID")
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("GhiChuAdmin")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("HoaDonID")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<DateTime>("NgayTao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("TongTienHoan")
-                        .HasPrecision(18)
-                        .HasColumnType("decimal(18,0)");
-
-                    b.Property<int>("TrangThai")
-                        .HasColumnType("int");
-
-                    b.HasKey("PhieuDoiTraID");
-
-                    b.HasIndex("HoaDonID");
-
-                    b.ToTable("phieuDoiTras");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.PhuongThucThanhToan", b =>
                 {
                     b.Property<string>("PhuongThucThanhToanID")
@@ -818,28 +649,6 @@ namespace DATN_70.Migrations
                     b.ToTable("VaiTros");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.ChiTietDoiTra", b =>
-                {
-                    b.HasOne("DATN_70.Models.Entities.ChiTietSanPham", "ChiTietSanPham")
-                        .WithMany()
-                        .HasForeignKey("ChiTietSanPhamID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DATN_70.Models.Entities.PhieuDoiTra", "PhieuDoiTra")
-                        .WithMany("ChiTietDoiTras")
-                        .HasForeignKey("PhieuDoiTraID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChiTietSanPham");
-
-                    b.Navigation("PhieuDoiTra");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.ChiTietGioHang", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.ChiTietSanPham", "ChiTietSanPham")
@@ -927,26 +736,6 @@ namespace DATN_70.Migrations
                     b.Navigation("TaiKhoan");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.HinhAnhSanPham", b =>
-                {
-                    b.HasOne("DATN_70.Models.Entities.Mau", "Mau")
-                        .WithMany("HinhAnhSanPhams")
-                        .HasForeignKey("MauID");
-
-                    b.HasOne("DATN_70.Models.Entities.SanPham", "SanPham")
-                        .WithMany("HinhAnhSanPhams")
-                        .HasForeignKey("SanPhamID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Mau");
-
-                    b.Navigation("SanPham");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.HoaDon", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.DiaChi", "DiaChi")
@@ -1040,20 +829,6 @@ namespace DATN_70.Migrations
                     b.Navigation("TaiKhoan");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
-                {
-                    b.HasOne("DATN_70.Models.Entities.HoaDon", "HoaDon")
-                        .WithMany()
-                        .HasForeignKey("HoaDonID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("HoaDon");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.SanPham", b =>
                 {
                     b.HasOne("DATN_70.Models.Entities.DanhMuc", "DanhMuc")
@@ -1133,11 +908,6 @@ namespace DATN_70.Migrations
             modelBuilder.Entity("DATN_70.Models.Entities.Mau", b =>
                 {
                     b.Navigation("ChiTietSanPhams");
-<<<<<<< HEAD
-
-                    b.Navigation("HinhAnhSanPhams");
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 });
 
             modelBuilder.Entity("DATN_70.Models.Entities.NhanVien", b =>
@@ -1145,14 +915,6 @@ namespace DATN_70.Migrations
                     b.Navigation("HoaDons");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("DATN_70.Models.Entities.PhieuDoiTra", b =>
-                {
-                    b.Navigation("ChiTietDoiTras");
-                });
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             modelBuilder.Entity("DATN_70.Models.Entities.PhuongThucThanhToan", b =>
                 {
                     b.Navigation("ChiTietThanhToans");
@@ -1162,11 +924,6 @@ namespace DATN_70.Migrations
                 {
                     b.Navigation("ChiTietSanPhams");
 
-<<<<<<< HEAD
-                    b.Navigation("HinhAnhSanPhams");
-
-=======
->>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                     b.Navigation("KhuyenMaiSanPhams");
                 });
 

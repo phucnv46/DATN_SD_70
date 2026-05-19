@@ -122,12 +122,16 @@ public sealed class AccountOrderViewModel
 
 public sealed class AccountOrderLineViewModel
 {
+<<<<<<< HEAD
     public string ChiTietSanPhamId { get; set; }
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     public string ProductName { get; set; } = string.Empty;
     public string Variant { get; set; } = string.Empty;
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
 }
+<<<<<<< HEAD
 public class CustomerReturnRequest
 {
     public string HoaDonId { get; set; } = string.Empty;
@@ -141,3 +145,5 @@ public class CustomerReturnItem
     public int SoLuongTra { get; set; }
     public int LyDoKey { get; set; }
 }
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

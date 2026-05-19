@@ -27,6 +27,9 @@ namespace DATN_70.Models.Entities
         public HoaDon HoaDon { get; set; }       
         public string PhuongThucThanhToanID { get; set; }
         public PhuongThucThanhToan PhuongThucThanhToan { get; set; }
+<<<<<<< HEAD
 
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     }
 }

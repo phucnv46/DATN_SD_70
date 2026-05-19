@@ -1,11 +1,16 @@
 @model DATN_70.Models.ViewModels.CheckoutPageViewModel
 @using System.Text.Json
 @{
+<<<<<<< HEAD
     ViewData["Title"] = "Thanh toán đơn hàng";
+=======
+    ViewData["Title"] = "Thanh toán";
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     var bootstrapJson = JsonSerializer.Serialize(Model.Customer, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     });
+<<<<<<< HEAD
     // Tìm địa chỉ mặc định để hiển thị trực tiếp ra màn hình
     var defaultAddress = Model.Customer.SavedAddresses?.FirstOrDefault(a => a.IsDefault)
                          ?? Model.Customer.SavedAddresses?.FirstOrDefault();
@@ -214,10 +219,140 @@
                     <p class="text-muted small mb-0 px-2">Vui lòng quét mã và thực hiện chuyển khoản. Popup sẽ tự động đóng ngay sau khi nhận được tiền tài khoản.</p>
                 </div>
             </div>
+=======
+}
+
+<section id="checkoutPage" class="page-section checkout-page">
+    <div class="container">
+        <div class="checkout-shell">
+            <div class="checkout-form-panel">
+                <div class="section-heading">
+                    <div>
+                        <h1>Thông tin đơn hàng</h1>
+                        <p class="section-subtitle">Kiểm tra người nhận, địa chỉ giao hàng và phương thức thanh toán trước khi hoàn tất.</p>
+                    </div>
+                </div>
+
+                @if (Model.Customer.IsAuthenticated && Model.Customer.SavedAddresses.Any())
+                {
+                    <div class="checkout-section">
+                        <div class="section-heading">
+                            <h2>Địa chỉ đã lưu</h2>
+                            <button id="useCustomAddressButton" type="button" class="btn btn-ghost-dark btn-sm">Chọn thông tin khác</button>
+                        </div>
+                        <div id="savedAddressList" class="address-choice-grid">
+                            @foreach (var address in Model.Customer.SavedAddresses)
+                            {
+                                <button type="button"
+                                        class="saved-address-card @(address.IsDefault ? "is-default" : string.Empty)"
+                                        data-address-id="@address.Id"
+                                        data-recipient="@address.RecipientName"
+                                        data-phone="@address.Phone"
+                                        data-street="@address.Street"
+                                        data-province="@address.Province"
+                                        data-district="@address.District"
+                                        data-ward="@address.Ward">
+                                    <span class="saved-address-top">
+                                        <strong>@address.RecipientName</strong>
+                                        @if (address.IsDefault)
+                                        {
+                                            <span class="status-pill">Mặc định</span>
+                                        }
+                                    </span>
+                                    <span>@address.Phone</span>
+                                    <span>@address.DisplayAddress</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="checkout-form-grid">
+                    <input id="selectedAddressId" type="hidden" value="@Model.Customer.SelectedAddressId" />
+                    <div class="full">
+                        <label class="filter-label" for="checkoutFullName">Họ và tên</label>
+                        <input id="checkoutFullName" type="text" class="store-input" placeholder="Họ và tên" />
+                    </div>
+                    <div>
+                        <label class="filter-label" for="checkoutEmail">Email</label>
+                        <input id="checkoutEmail" type="email" class="store-input" placeholder="Email" />
+                    </div>
+                    <div>
+                        <label class="filter-label" for="checkoutPhone">Số điện thoại</label>
+                        <input id="checkoutPhone" type="tel" class="store-input" placeholder="Số điện thoại" />
+                    </div>
+                    <div class="full">
+                        <label class="filter-label" for="checkoutStreet">Địa chỉ chi tiết</label>
+                        <input id="checkoutStreet" type="text" class="store-input" placeholder="Số nhà, tên đường" />
+                    </div>
+                    <div>
+                        <label class="filter-label" for="checkoutProvince">Tỉnh/Thành</label>
+                        <select id="checkoutProvince" class="store-select"></select>
+                    </div>
+                    <div>
+                        <label class="filter-label" for="checkoutDistrict">Quận/Huyện</label>
+                        <select id="checkoutDistrict" class="store-select"></select>
+                    </div>
+                    <div>
+                        <label class="filter-label" for="checkoutWard">Phường/Xã</label>
+                        <select id="checkoutWard" class="store-select"></select>
+                    </div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2>Phương thức vận chuyển</h2>
+                    <div id="shippingOptions" class="stack-options"></div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2>Phương thức thanh toán</h2>
+                    <div id="paymentOptions" class="stack-options"></div>
+                </div>
+
+                <div class="checkout-section">
+                    <h2>Mã giảm giá</h2>
+                    <div class="coupon-row">
+                        <input id="checkoutCouponInput" type="text" class="store-input" placeholder="Nhập mã hoặc chọn mã có sẵn" />
+                        <button id="applyCouponButton" type="button" class="btn btn-ghost-dark">Áp dụng</button>
+                    </div>
+                    <div id="couponSuggestions" class="coupon-list"></div>
+                </div>
+
+                <div class="checkout-actions">
+                    <a class="btn btn-ghost-dark" asp-controller="Home" asp-action="Cart">Giỏ hàng</a>
+                    <button id="placeOrderButton" type="button" class="btn btn-brand">Hoàn tất đơn hàng</button>
+                </div>
+            </div>
+
+            <aside class="checkout-summary-panel">
+                <h2>Đơn hàng</h2>
+                <div id="checkoutItems" class="checkout-items"></div>
+                <div class="summary-list">
+                    <div class="summary-row">
+                        <span>Tạm tính</span>
+                        <strong id="checkoutSubtotal">0 đ</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tiền ship</span>
+                        <span id="checkoutShipping">0 đ</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tiền giảm</span>
+                        <span id="checkoutDiscount">0 đ</span>
+                    </div>
+                    <div class="summary-row summary-total">
+                        <span>Tổng cộng</span>
+                        <strong id="checkoutGrandTotal">0 đ</strong>
+                    </div>
+                </div>
+                <div id="checkoutSummaryMessage" class="checkout-summary-message"></div>
+            </aside>
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         </div>
     </div>
 </section>
 
+<<<<<<< HEAD
 @if (Model.Customer.IsAuthenticated && Model.Customer.SavedAddresses != null && Model.Customer.SavedAddresses.Any())
 {
     <div class="modal fade" id="addressModal" tyrannical="true" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
@@ -453,3 +588,10 @@
             border-color: #6c757d !important;
         }
 </style>
+=======
+@section Scripts {
+    <script>
+        window.checkoutBootstrap = @Html.Raw(bootstrapJson);
+    </script>
+}
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

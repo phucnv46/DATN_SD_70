@@ -27,10 +27,14 @@ namespace DATN_70.Data
         public DbSet<DiaChi> DiaChis { get; set; }
         public DbSet<PhuongThucThanhToan> PhuongThucThanhToans { get; set; }
         public DbSet<ChiTietThanhToan> ChiTietThanhToans { get; set; }
+<<<<<<< HEAD
         public DbSet<HinhAnhSanPham> HinhAnhSanPhams { get; set; }
 
         public DbSet<PhieuDoiTra> phieuDoiTras { get; set; }
         public DbSet<ChiTietDoiTra> chiTietDoiTras { get; set; }
+=======
+
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using static DATN_70.Models.Enums.Enums;
 
+=======
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using static DATN_70.Models.Enums.Enums;
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 namespace DATN_70.Models.Entities
 {
     public class KhuyenMai
@@ -10,14 +16,18 @@ namespace DATN_70.Models.Entities
         [MaxLength(20)]
         public string KhuyenMaiID { get; set; }
 
+<<<<<<< HEAD
         // --- CỘT MỚI: MÃ VOUCHER ---
         [MaxLength(50)]
         public string? MaCode { get; set; } // Khách nhập mã này để giảm. Nếu để NULL thì là tự động giảm.
 
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         [Required]
         [MaxLength(100)]
         public string Ten { get; set; }
 
+<<<<<<< HEAD
         // --- THAY THẾ CỘT PhanTramChietKhau THÀNH BỘ ĐÔI NÀY ---
         public LoaiGiamGia LoaiGiamGia { get; set; } // 0: Trừ thẳng tiền, 1: Phần trăm
 
@@ -34,11 +44,19 @@ namespace DATN_70.Models.Entities
         public int SoLuongToiDa { get; set; } // Tổng số lượng mã phát ra
         public int SoLuongDaDung { get; set; } = 0; // Đếm số người đã xài
 
+=======
+        [Column(TypeName = "decimal(18,0)")]
+        public decimal PhanTramChietKhau { get; set; }
+
+        [Column(TypeName = "decimal(18,0)")]
+        public decimal GiaTriToiThieuApDung { get; set; }
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         public DateTime NgayApDung { get; set; }
         public DateTime NgayKetThuc { get; set; }
 
         [MaxLength(500)]
         public string MoTa { get; set; }
+<<<<<<< HEAD
 
         public TrangThaiHoatDong TrangThai { get; set; }
 
@@ -47,3 +65,10 @@ namespace DATN_70.Models.Entities
         public ICollection<KhuyenMaiSanPham> KhuyenMaiSanPhams { get; set; } // Bảng phụ để áp dụng cho 1 hoặc nhiều sản phẩm cụ thể
     }
 }
+=======
+        public TrangThaiHoatDong TrangThai { get; set; }      
+        public ICollection<HoaDon> HoaDons { get; set; }        
+        public ICollection<KhuyenMaiSanPham> KhuyenMaiSanPhams { get; set; }
+    }
+}
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

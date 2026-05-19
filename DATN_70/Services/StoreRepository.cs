@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ﻿using DATN_70.Data;
+=======
+using DATN_70.Data;
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 using DATN_70.Models.Orders;
 using DATN_70.Models.Products;
 using Microsoft.Data.SqlClient;
@@ -16,27 +20,39 @@ public sealed class StoreRepository : IStoreRepository
 
     public async Task<IReadOnlyList<ProductListItemResponse>> GetProductsAsync(CancellationToken cancellationToken)
     {
+<<<<<<< HEAD
         // SQL đã được nâng cấp để đọc LoaiGiamGia, GiaTriGiam và GiamToiDa
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         const string sql = """
             WITH ActivePromotions AS (
                 SELECT
                     ksp.SanPhamID,
+<<<<<<< HEAD
                     km.LoaiGiamGia,
                     km.GiaTriGiam,
                     km.GiamToiDa,
                     ROW_NUMBER() OVER(PARTITION BY ksp.SanPhamID ORDER BY km.GiaTriGiam DESC) as rn
+=======
+                    MAX(km.PhanTramChietKhau) AS PhanTramGiam
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 FROM KhuyenMaiSanPhams ksp
                 INNER JOIN KhuyenMais km ON km.KhuyenMaiID = ksp.KhuyenMaiID
                 WHERE km.TrangThai = 1
                   AND GETDATE() >= km.NgayApDung
                   AND GETDATE() <= km.NgayKetThuc
+<<<<<<< HEAD
                   AND (km.SoLuongToiDa = 0 OR km.SoLuongDaDung < km.SoLuongToiDa)
+=======
+                GROUP BY ksp.SanPhamID
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             )
             SELECT
                 sp.SanPhamID,
                 sp.Ten,
                 sp.MoTa,
                 MIN(CASE
+<<<<<<< HEAD
                     WHEN ap.GiaTriGiam IS NULL THEN ctsp.GiaNiemYet
                     WHEN ap.LoaiGiamGia = 0 THEN 
                          CASE WHEN ctsp.GiaNiemYet - ap.GiaTriGiam < 0 THEN 0 ELSE ctsp.GiaNiemYet - ap.GiaTriGiam END
@@ -61,6 +77,18 @@ public sealed class StoreRepository : IStoreRepository
             LEFT JOIN ChiTietSanPhams ctsp ON ctsp.SanPhamID = sp.SanPhamID
             LEFT JOIN ActivePromotions ap ON ap.SanPhamID = sp.SanPhamID AND ap.rn = 1
             GROUP BY sp.SanPhamID, sp.Ten, sp.MoTa, ap.LoaiGiamGia, ap.GiaTriGiam, ap.GiamToiDa
+=======
+                    WHEN ap.PhanTramGiam IS NULL THEN ctsp.GiaNiemYet
+                    ELSE ROUND(ctsp.GiaNiemYet * (100 - ap.PhanTramGiam) / 100.0, 0)
+                END) AS GiaThapNhat,
+                MIN(ctsp.GiaNiemYet) AS GiaGoc,
+                COALESCE(ap.PhanTramGiam, 0) AS PhanTramGiam,
+                SUM(ctsp.SoLuongTonKho) AS TongSoLuongTon
+            FROM SanPhams sp
+            LEFT JOIN ChiTietSanPhams ctsp ON ctsp.SanPhamID = sp.SanPhamID
+            LEFT JOIN ActivePromotions ap ON ap.SanPhamID = sp.SanPhamID
+            GROUP BY sp.SanPhamID, sp.Ten, sp.MoTa, ap.PhanTramGiam
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             ORDER BY sp.Ten;
             """;
 
@@ -82,10 +110,14 @@ public sealed class StoreRepository : IStoreRepository
                 GiaThapNhat = reader.IsDBNull(3) ? 0 : reader.GetDecimal(3),
                 GiaGoc = reader.IsDBNull(4) ? 0 : reader.GetDecimal(4),
                 PhanTramGiam = reader.IsDBNull(5) ? 0 : reader.GetDecimal(5),
+<<<<<<< HEAD
                 LoaiGiamGia = reader.GetInt32(6),
                 GiaTriGiam = reader.GetDecimal(7),
                 GiamToiDa = reader.GetDecimal(8),
                 TongSoLuongTon = reader.IsDBNull(9) ? 0 : reader.GetInt32(9)
+=======
+                TongSoLuongTon = reader.IsDBNull(6) ? 0 : reader.GetInt32(6)
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             });
         }
 
@@ -104,16 +136,24 @@ public sealed class StoreRepository : IStoreRepository
             WITH ActivePromotions AS (
                 SELECT
                     ksp.SanPhamID,
+<<<<<<< HEAD
                     km.LoaiGiamGia,
                     km.GiaTriGiam,
                     km.GiamToiDa,
                     ROW_NUMBER() OVER(PARTITION BY ksp.SanPhamID ORDER BY km.GiaTriGiam DESC) as rn
+=======
+                    MAX(km.PhanTramChietKhau) AS PhanTramGiam
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 FROM KhuyenMaiSanPhams ksp
                 INNER JOIN KhuyenMais km ON km.KhuyenMaiID = ksp.KhuyenMaiID
                 WHERE km.TrangThai = 1
                   AND GETDATE() >= km.NgayApDung
                   AND GETDATE() <= km.NgayKetThuc
+<<<<<<< HEAD
                   AND (km.SoLuongToiDa = 0 OR km.SoLuongDaDung < km.SoLuongToiDa)
+=======
+                GROUP BY ksp.SanPhamID
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             )
             SELECT
                 ctsp.ChiTietSanPhamID,
@@ -122,6 +162,7 @@ public sealed class StoreRepository : IStoreRepository
                 ctsp.MauID,
                 m.Ten,
                 CASE
+<<<<<<< HEAD
                     WHEN ap.GiaTriGiam IS NULL THEN ctsp.GiaNiemYet
                     WHEN ap.LoaiGiamGia = 0 THEN 
                          CASE WHEN ctsp.GiaNiemYet - ap.GiaTriGiam < 0 THEN 0 ELSE ctsp.GiaNiemYet - ap.GiaTriGiam END
@@ -141,11 +182,22 @@ public sealed class StoreRepository : IStoreRepository
                 COALESCE(ap.LoaiGiamGia, -1) AS LoaiGiamGia,
                 COALESCE(ap.GiaTriGiam, 0) AS GiaTriGiam,
                 COALESCE(ap.GiamToiDa, 0) AS GiamToiDa,
+=======
+                    WHEN ap.PhanTramGiam IS NULL THEN ctsp.GiaNiemYet
+                    ELSE ROUND(ctsp.GiaNiemYet * (100 - ap.PhanTramGiam) / 100.0, 0)
+                END AS GiaBan,
+                ctsp.GiaNiemYet AS GiaGoc,
+                COALESCE(ap.PhanTramGiam, 0) AS PhanTramGiam,
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 ctsp.SoLuongTonKho
             FROM ChiTietSanPhams ctsp
             INNER JOIN KichCos kc ON kc.KichCoID = ctsp.KichCoID
             INNER JOIN Maus m ON m.MauID = ctsp.MauID
+<<<<<<< HEAD
             LEFT JOIN ActivePromotions ap ON ap.SanPhamID = ctsp.SanPhamID AND ap.rn = 1
+=======
+            LEFT JOIN ActivePromotions ap ON ap.SanPhamID = ctsp.SanPhamID
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             WHERE ctsp.SanPhamID = @SanPhamID
             ORDER BY kc.Ten, m.Ten;
             """;
@@ -154,10 +206,21 @@ public sealed class StoreRepository : IStoreRepository
         await connection.OpenAsync(cancellationToken);
 
         var product = await LoadProductAsync(connection, productSql, productId, cancellationToken);
+<<<<<<< HEAD
         if (product is null) return null;
 
         await using var variantCommand = new SqlCommand(variantSql, connection);
         variantCommand.Parameters.AddWithValue("@SanPhamID", productId);
+=======
+        if (product is null)
+        {
+            return null;
+        }
+
+        await using var variantCommand = new SqlCommand(variantSql, connection);
+        variantCommand.Parameters.AddWithValue("@SanPhamID", productId);
+
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         await using var reader = await variantCommand.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))
@@ -172,10 +235,14 @@ public sealed class StoreRepository : IStoreRepository
                 GiaNiemYet = reader.GetDecimal(5),
                 GiaGoc = reader.GetDecimal(6),
                 PhanTramGiam = reader.GetDecimal(7),
+<<<<<<< HEAD
                 LoaiGiamGia = reader.GetInt32(8),
                 GiaTriGiam = reader.GetDecimal(9),
                 GiamToiDa = reader.GetDecimal(10),
                 SoLuongTon = reader.GetInt32(11)
+=======
+                SoLuongTon = reader.GetInt32(8)
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             });
         }
 
@@ -183,10 +250,29 @@ public sealed class StoreRepository : IStoreRepository
     }
 
     public async Task<ServiceResult<OrderCreatedResponse>> PlaceOrderAsync(
+<<<<<<< HEAD
         PlaceOrderRequest request, CancellationToken cancellationToken)
     {
         var normalizedItems = request.Items.GroupBy(item => item.ChiTietSanPhamID).Select(group => new OrderItemRequest { ChiTietSanPhamID = group.Key, SoLuong = group.Sum(item => item.SoLuong) }).ToList();
         if (normalizedItems.Count == 0) return ServiceResult<OrderCreatedResponse>.Fail("Don hang phai co it nhat 1 san pham.");
+=======
+        PlaceOrderRequest request,
+        CancellationToken cancellationToken)
+    {
+        var normalizedItems = request.Items
+            .GroupBy(item => item.ChiTietSanPhamID)
+            .Select(group => new OrderItemRequest
+            {
+                ChiTietSanPhamID = group.Key,
+                SoLuong = group.Sum(item => item.SoLuong)
+            })
+            .ToList();
+
+        if (normalizedItems.Count == 0)
+        {
+            return ServiceResult<OrderCreatedResponse>.Fail("Don hang phai co it nhat 1 san pham.");
+        }
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
         await using var connection = _connectionFactory.CreateConnection();
         await connection.OpenAsync(cancellationToken);
@@ -202,6 +288,7 @@ public sealed class StoreRepository : IStoreRepository
             foreach (var item in normalizedItems)
             {
                 var stockInfo = await GetStockInfoAsync(connection, transaction, item.ChiTietSanPhamID, cancellationToken);
+<<<<<<< HEAD
                 if (stockInfo is null) { await transaction.RollbackAsync(cancellationToken); return ServiceResult<OrderCreatedResponse>.Fail($"Khong tim thay bien the {item.ChiTietSanPhamID}."); }
 
                 var stock = stockInfo.Value;
@@ -212,6 +299,28 @@ public sealed class StoreRepository : IStoreRepository
                 totalAmount += lineTotal;
 
                 orderDetails.Add((detailId, item.ChiTietSanPhamID, item.SoLuong, stock.GiaBan, lineTotal));
+=======
+                if (stockInfo is null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return ServiceResult<OrderCreatedResponse>.Fail($"Khong tim thay bien the {item.ChiTietSanPhamID}.");
+                }
+
+                var stock = stockInfo.Value;
+
+                if (stock.SoLuongTon < item.SoLuong)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return ServiceResult<OrderCreatedResponse>.Fail(
+                        $"San pham {item.ChiTietSanPhamID} chi con {stock.SoLuongTon} trong kho.");
+                }
+
+                var detailId = GenerateId("HDCT", 20);
+                var lineTotal = stock.GiaNiemYet * item.SoLuong;
+                totalAmount += lineTotal;
+
+                orderDetails.Add((detailId, item.ChiTietSanPhamID, item.SoLuong, stock.GiaNiemYet, lineTotal));
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             }
 
             await InsertOrderAsync(connection, transaction, orderId, request, orderCreatedAt, totalAmount, cancellationToken);
@@ -223,6 +332,7 @@ public sealed class StoreRepository : IStoreRepository
             }
 
             await transaction.CommitAsync(cancellationToken);
+<<<<<<< HEAD
             return ServiceResult<OrderCreatedResponse>.Ok(new OrderCreatedResponse { HoaDonID = orderId, TenKhachHang = request.TenKhachHang, SoDienThoai = request.SoDienThoai, DiaChiGiaoHang = request.DiaChiGiaoHang, NgayTao = orderCreatedAt, TongTien = totalAmount, TrangThai = 0, ChiTiet = orderDetails.Select(detail => new OrderCreatedItemResponse { HoaDonChiTietID = detail.DetailId, ChiTietSanPhamID = detail.ProductDetailId, SoLuong = detail.Quantity, DonGia = detail.UnitPrice, ThanhTien = detail.LineTotal }).ToList() });
         }
         catch (Exception ex)
@@ -232,6 +342,31 @@ public sealed class StoreRepository : IStoreRepository
             Console.WriteLine(ex.Message);
             Console.WriteLine(ex.StackTrace);
             Console.WriteLine("=================================================");
+=======
+
+            return ServiceResult<OrderCreatedResponse>.Ok(new OrderCreatedResponse
+            {
+                HoaDonID = orderId,
+                TenKhachHang = request.TenKhachHang,
+                SoDienThoai = request.SoDienThoai,
+                DiaChiGiaoHang = request.DiaChiGiaoHang,
+                NgayTao = orderCreatedAt,
+                TongTien = totalAmount,
+                TrangThai = 0,
+                ChiTiet = orderDetails.Select(detail => new OrderCreatedItemResponse
+                {
+                    HoaDonChiTietID = detail.DetailId,
+                    ChiTietSanPhamID = detail.ProductDetailId,
+                    SoLuong = detail.Quantity,
+                    DonGia = detail.UnitPrice,
+                    ThanhTien = detail.LineTotal
+                }).ToList()
+            });
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             throw;
         }
     }
@@ -239,6 +374,7 @@ public sealed class StoreRepository : IStoreRepository
     private static string GenerateId(string prefix, int totalLength)
     {
         var suffixLength = totalLength - prefix.Length;
+<<<<<<< HEAD
         return prefix + Guid.NewGuid().ToString("N")[..suffixLength];
     }
 
@@ -252,10 +388,46 @@ public sealed class StoreRepository : IStoreRepository
     }
 
     private static async Task<(decimal GiaBan, int SoLuongTon)?> GetStockInfoAsync(SqlConnection connection, SqlTransaction transaction, string productDetailId, CancellationToken cancellationToken)
+=======
+        var suffix = Guid.NewGuid().ToString("N")[..suffixLength];
+        return prefix + suffix;
+    }
+
+    private static async Task<ProductDetailResponse?> LoadProductAsync(
+        SqlConnection connection,
+        string sql,
+        string productId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = new SqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@SanPhamID", productId);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ProductDetailResponse
+        {
+            SanPhamID = reader.GetString(0),
+            Ten = reader.GetString(1),
+            MoTa = reader.IsDBNull(2) ? string.Empty : reader.GetString(2)
+        };
+    }
+
+    private static async Task<(decimal GiaNiemYet, int SoLuongTon)?> GetStockInfoAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string productDetailId,
+        CancellationToken cancellationToken)
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     {
         const string sql = """
             SELECT
                 CASE
+<<<<<<< HEAD
                     WHEN ap.GiaTriGiam IS NULL THEN ctsp.GiaNiemYet
                     WHEN ap.LoaiGiamGia = 0 THEN 
                          CASE WHEN ctsp.GiaNiemYet - ap.GiaTriGiam < 0 THEN 0 ELSE ctsp.GiaNiemYet - ap.GiaTriGiam END
@@ -265,28 +437,40 @@ public sealed class StoreRepository : IStoreRepository
                               ELSE ctsp.GiaNiemYet - ROUND(ctsp.GiaNiemYet * ap.GiaTriGiam / 100.0, 0)
                          END
                     ELSE ctsp.GiaNiemYet
+=======
+                    WHEN ap.PhanTramGiam IS NULL THEN ctsp.GiaNiemYet
+                    ELSE ROUND(ctsp.GiaNiemYet * (100 - ap.PhanTramGiam) / 100.0, 0)
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 END AS GiaBan,
                 ctsp.SoLuongTonKho
             FROM ChiTietSanPhams ctsp WITH (UPDLOCK, ROWLOCK)
             OUTER APPLY (
+<<<<<<< HEAD
                 SELECT TOP 1
                     km.LoaiGiamGia,
                     km.GiaTriGiam,
                     km.GiamToiDa
+=======
+                SELECT MAX(km.PhanTramChietKhau) AS PhanTramGiam
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
                 FROM KhuyenMaiSanPhams ksp
                 INNER JOIN KhuyenMais km ON km.KhuyenMaiID = ksp.KhuyenMaiID
                 WHERE ksp.SanPhamID = ctsp.SanPhamID
                   AND km.TrangThai = 1
                   AND GETDATE() >= km.NgayApDung
                   AND GETDATE() <= km.NgayKetThuc
+<<<<<<< HEAD
                   AND (km.SoLuongToiDa = 0 OR km.SoLuongDaDung < km.SoLuongToiDa)
                 ORDER BY km.GiaTriGiam DESC
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             ) ap
             WHERE ctsp.ChiTietSanPhamID = @ChiTietSanPhamID;
             """;
 
         await using var command = new SqlCommand(sql, connection, transaction);
         command.Parameters.AddWithValue("@ChiTietSanPhamID", productDetailId);
+<<<<<<< HEAD
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken)) return null;
         return (reader.GetDecimal(0), reader.GetInt32(1));
@@ -320,6 +504,85 @@ public sealed class StoreRepository : IStoreRepository
         """;
         decimal mucVat = 10;
         decimal tienVat = Math.Round(detail.LineTotal * (mucVat / 100m), 0);
+=======
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return (reader.GetDecimal(0), reader.GetInt32(1));
+    }
+
+    private static async Task InsertOrderAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string orderId,
+        PlaceOrderRequest request,
+        DateTime createdAt,
+        decimal totalAmount,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            INSERT INTO HoaDon (
+                HoaDonID,
+                TenKhachHang,
+                SoDienThoai,
+                DiaChiGiaoHang,
+                NgayTao,
+                TongTien,
+                TrangThai
+            )
+            VALUES (
+                @HoaDonID,
+                @TenKhachHang,
+                @SoDienThoai,
+                @DiaChiGiaoHang,
+                @NgayTao,
+                @TongTien,
+                @TrangThai
+            );
+            """;
+
+        await using var command = new SqlCommand(sql, connection, transaction);
+        command.Parameters.AddWithValue("@HoaDonID", orderId);
+        command.Parameters.AddWithValue("@TenKhachHang", request.TenKhachHang);
+        command.Parameters.AddWithValue("@SoDienThoai", request.SoDienThoai);
+        command.Parameters.AddWithValue("@DiaChiGiaoHang", request.DiaChiGiaoHang);
+        command.Parameters.AddWithValue("@NgayTao", createdAt);
+        command.Parameters.AddWithValue("@TongTien", totalAmount);
+        command.Parameters.AddWithValue("@TrangThai", 0);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static async Task InsertOrderDetailAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string orderId,
+        (string DetailId, string ProductDetailId, int Quantity, decimal UnitPrice, decimal LineTotal) detail,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            INSERT INTO HoaDonChiTiet (
+                HoaDonChiTietID,
+                HoaDonID,
+                ChiTietSanPhamID,
+                SoLuong,
+                DonGia,
+                ThanhTien
+            )
+            VALUES (
+                @HoaDonChiTietID,
+                @HoaDonID,
+                @ChiTietSanPhamID,
+                @SoLuong,
+                @DonGia,
+                @ThanhTien
+            );
+            """;
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
         await using var command = new SqlCommand(sql, connection, transaction);
         command.Parameters.AddWithValue("@HoaDonChiTietID", detail.DetailId);
@@ -327,6 +590,7 @@ public sealed class StoreRepository : IStoreRepository
         command.Parameters.AddWithValue("@ChiTietSanPhamID", detail.ProductDetailId);
         command.Parameters.AddWithValue("@SoLuong", detail.Quantity);
         command.Parameters.AddWithValue("@DonGia", detail.UnitPrice);
+<<<<<<< HEAD
         command.Parameters.AddWithValue("@MucVAT", mucVat);
         command.Parameters.AddWithValue("@TienVAT", tienVat);
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -341,3 +605,30 @@ public sealed class StoreRepository : IStoreRepository
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
+=======
+        command.Parameters.AddWithValue("@ThanhTien", detail.LineTotal);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private static async Task UpdateStockAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        string productDetailId,
+        int quantity,
+        CancellationToken cancellationToken)
+    {
+        const string sql = """
+            UPDATE ChiTietSanPhams
+            SET SoLuongTonKho = SoLuongTonKho - @SoLuong
+            WHERE ChiTietSanPhamID = @ChiTietSanPhamID;
+            """;
+
+        await using var command = new SqlCommand(sql, connection, transaction);
+        command.Parameters.AddWithValue("@SoLuong", quantity);
+        command.Parameters.AddWithValue("@ChiTietSanPhamID", productDetailId);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+}
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

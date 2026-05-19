@@ -19,8 +19,11 @@ public sealed class ProductVariantResponse
     public decimal PhanTramGiam { get; set; }
 
     public int SoLuongTon { get; set; }
+<<<<<<< HEAD
     public string HinhAnhUrl { get; set; } = string.Empty;
     public int LoaiGiamGia { get; internal set; }
     public decimal GiaTriGiam { get; internal set; }
     public decimal GiamToiDa { get; internal set; }
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 }

@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 ﻿using PayOS; // ĐÃ SỬA: Namespace của bản mới nhất 2.1.0
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+<<<<<<< HEAD
 // =======================================================
 // KHỞI TẠO CỔNG THANH TOÁN PAYOS V2.1.0
 // =======================================================
@@ -15,12 +19,18 @@ PayOSClient payOSClient = new PayOSClient(
 builder.Services.AddSingleton(payOSClient);
 // =======================================================
 
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 builder.Services.AddDbContext<DATN_70.Data.AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<DATN_70.Data.SqlConnectionFactory>();
+<<<<<<< HEAD
+=======
+builder.Services.AddScoped<DATN_70.Data.StorefrontDataSeeder>();
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 builder.Services.AddScoped<DATN_70.Services.IStoreRepository, DATN_70.Services.StoreRepository>();
 
 builder.Services.AddControllersWithViews();
@@ -39,7 +49,12 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<DATN_70.Data.AppDbContext>();
     await dbContext.Database.MigrateAsync();
 
+<<<<<<< HEAD
     
+=======
+    var seeder = scope.ServiceProvider.GetRequiredService<DATN_70.Data.StorefrontDataSeeder>();
+    await seeder.SeedAsync();
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 }
 app.UseSession();
 app.MapControllerRoute(
@@ -52,4 +67,8 @@ app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
 
+<<<<<<< HEAD
 app.Run();
+=======
+app.Run();
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

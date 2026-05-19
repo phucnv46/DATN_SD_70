@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 ﻿namespace DATN_70.Models.ViewModels;
+=======
+namespace DATN_70.Models.ViewModels;
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
 public sealed class HomeIndexViewModel
 {
     public List<HomeBannerViewModel> Banners { get; set; } = [];
+<<<<<<< HEAD
     public List<HomeProductViewModel> FeaturedProducts { get; set; } = [];
     public List<HomeProductViewModel> SaleProducts { get; set; } = [];
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 }
 
 public sealed class HomeBannerViewModel
@@ -31,6 +38,7 @@ public sealed class BannerListItemViewModel
     public int SortOrder { get; set; }
     public bool IsActive { get; set; }
 }
+<<<<<<< HEAD
 public sealed class HomeProductViewModel
 {
     public string SanPhamID { get; set; } = string.Empty;
@@ -42,3 +50,5 @@ public sealed class HomeProductViewModel
     public string HinhAnhUrl { get; set; } = string.Empty;
     public string MoTaNgan { get; set; } = string.Empty;
 }
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4

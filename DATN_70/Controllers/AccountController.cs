@@ -69,10 +69,15 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string email, string password)
     {
+<<<<<<< HEAD
         // ĐỒNG BỘ: Bắt buộc phải .Include(item => item.NhanVien) để bốc được thông tin nhân viên lên cùng tài khoản
         var user = await _dbContext.TaiKhoans
             .Include(item => item.KhachHang)
             .Include(item => item.NhanVien)
+=======
+        var user = await _dbContext.TaiKhoans
+            .Include(item => item.KhachHang)
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             .FirstOrDefaultAsync(item => item.Email == email && item.MatKhau == password);
 
         if (user is null)
@@ -81,6 +86,7 @@ public class AccountController : Controller
             return View();
         }
 
+<<<<<<< HEAD
         // 1. Lưu các thông tin tài khoản cơ bản như cũ
         HttpContext.Session.SetString("UserId", user.TaiKhoanID);
         HttpContext.Session.SetString("UserEmail", user.Email);
@@ -91,6 +97,10 @@ public class AccountController : Controller
         {
             HttpContext.Session.SetString("NhanVienId", user.NhanVien.NhanVienID);
         }
+=======
+        HttpContext.Session.SetString("UserId", user.TaiKhoanID);
+        HttpContext.Session.SetString("UserEmail", user.Email);
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
 
         if (user.KhachHang is null)
         {
@@ -110,6 +120,7 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+<<<<<<< HEAD
     // BỔ SUNG: API Trả về trang báo lỗi 403 nếu cố tình hack URL vào trang Admin
     [HttpGet]
     public IActionResult AccessDenied()
@@ -117,12 +128,15 @@ public class AccountController : Controller
         return View();
     }
 
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     [HttpGet]
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
         return RedirectToAction("Index", "Home");
     }
+<<<<<<< HEAD
     [HttpGet]
     public IActionResult Index()
     {
@@ -133,6 +147,9 @@ public class AccountController : Controller
         // Trả về trang khung chứa Menu bên trái và hộp trống bên phải
         return View();
     }
+=======
+
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     [HttpGet]
     public async Task<IActionResult> Profile()
     {
@@ -413,6 +430,7 @@ public class AccountController : Controller
         TempData["PasswordStatus"] = "Mật khẩu đã được cập nhật.";
         return RedirectToAction(nameof(Password));
     }
+<<<<<<< HEAD
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(string id)
@@ -505,6 +523,9 @@ public class AccountController : Controller
 
         return Ok(new { message = "Gửi yêu cầu đổi trả thành công! Vui lòng chờ nhân viên liên hệ xác nhận." });
     }
+=======
+
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     [HttpGet]
     public async Task<IActionResult> Orders(string status = "all")
     {
@@ -531,6 +552,7 @@ public class AccountController : Controller
             .OrderByDescending(item => item.NgayTao)
             .ToListAsync();
 
+<<<<<<< HEAD
         // ĐỒNG BỘ: Quét toàn bộ phiếu Đổi/Trả RMA của khách hàng này để tìm trạng thái trung gian
         var orderIds = orderEntities.Select(o => o.HoaDonID).ToList();
         var rmaRequests = await _dbContext.Set<PhieuDoiTra>()
@@ -589,6 +611,33 @@ public class AccountController : Controller
                     UnitPrice = detail.DonGia
                 }).ToList()
             };
+=======
+        var orders = orderEntities.Select(item => new AccountOrderViewModel
+        {
+            Id = item.HoaDonID,
+            StatusKey = GetStatusKey(item.TrangThai),
+            StatusLabel = GetStatusLabel(item.TrangThai),
+            CreatedAt = item.NgayTao,
+            TotalAmount = (decimal)item.ThanhTien,
+            RecipientName = item.DiaChi != null ? item.DiaChi.TenNguoiNhan : user.KhachHang!.Ten,
+            Phone = item.DiaChi != null ? item.DiaChi.SoDienThoaiNhan : user.KhachHang!.SoDienThoai,
+            ShippingAddress = item.DiaChi != null
+                ? string.Join(", ", new[]
+                {
+                    AddressSerializer.ExtractStreet(item.DiaChi.PhuongXa),
+                    AddressSerializer.ExtractWard(item.DiaChi.PhuongXa),
+                    item.DiaChi.QuanHuyen,
+                    item.DiaChi.TinhThanh
+                }.Where(part => !string.IsNullOrWhiteSpace(part)))
+                : user.KhachHang!.DiaChi,
+            Items = item.HoaDonChiTiets.Select(detail => new AccountOrderLineViewModel
+            {
+                ProductName = detail.ChiTietSanPham.SanPham.Ten,
+                Variant = $"{detail.ChiTietSanPham.KichCoID} / {detail.ChiTietSanPham.MauID}",
+                Quantity = detail.SoLuong,
+                UnitPrice = detail.DonGia
+            }).ToList()
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         }).ToList();
 
         return View(new AccountOrdersPageViewModel
@@ -751,8 +800,11 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.DangGiao => "shipping",
             Enums.TrangThaiHoaDon.HoanThanh => "success",
             Enums.TrangThaiHoaDon.DaHuy => "cancelled",
+<<<<<<< HEAD
             (Enums.TrangThaiHoaDon)6 => "returned",
 
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             _ => "pending"
         };
     }
@@ -767,7 +819,10 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.DangGiao => "Đang giao",
             Enums.TrangThaiHoaDon.HoanThanh => "Thành công",
             Enums.TrangThaiHoaDon.DaHuy => "Đã hủy",
+<<<<<<< HEAD
             (Enums.TrangThaiHoaDon)6 => "Đã đổi trả",
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             _ => "Chờ xác nhận"
         };
     }

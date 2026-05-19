@@ -10,8 +10,12 @@
             DangChuanBi = 2,
             DangGiao = 3,
             HoanThanh = 4,
+<<<<<<< HEAD
             DaHuy = 5,
             DaDoiTra = 6
+=======
+            DaHuy = 5
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
         }
         // 2. Loại giao dịch
         public enum LoaiGiaoDich
@@ -44,6 +48,7 @@
             ThatBai = 0,
             ThanhCong = 1
         }
+<<<<<<< HEAD
         public enum LoaiGiamGia
         {
             TruThangTien = 0,
@@ -65,5 +70,7 @@
             GiaoThieuHang = 2,
             Khac = 3
         }
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
     }
 }

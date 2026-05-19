@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @model List<DATN_70.Models.ViewModels.HomeProductViewModel>
 @{
     ViewData["Title"] = "Tất cả sản phẩm";
@@ -118,10 +119,79 @@
                         }
                     }
                 </div>
+=======
+@{
+    ViewData["Title"] = "Danh sách sản phẩm";
+}
+
+<section id="productsPage" class="page-section products-page">
+    <div class="container">
+        <div class="catalog-shell">
+            <aside class="catalog-sidebar">
+                <div class="filter-card">
+                    <h2>Bộ lọc</h2>
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterParentCategory">Danh mục sản phẩm</label>
+                        <select id="filterParentCategory" class="store-select">
+                            <option value="all">Tất cả</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label" for="filterSubCategory">Danh mục phụ</label>
+                        <select id="filterSubCategory" class="store-select">
+                            <option value="all">Tất cả</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-label">Khoảng giá</div>
+                        <div class="range-values">
+                            <span id="priceRangeMinLabel">0 đ</span>
+                            <span id="priceRangeMaxLabel">0 đ</span>
+                        </div>
+                        <div class="range-stack">
+                            <input id="priceRangeMin" type="range" min="0" max="3000000" step="50000" value="0" />
+                            <input id="priceRangeMax" type="range" min="0" max="3000000" step="50000" value="3000000" />
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <div class="filter-label">Size</div>
+                        <div id="sizeFilters" class="chip-row"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="catalog-content">
+                <div class="catalog-toolbar">
+                    <div>
+                        <div class="catalog-count"><span id="catalogCount">0</span> sản phẩm</div>
+                        <div id="catalogSummary" class="catalog-summary">Đang tải danh sách sản phẩm...</div>
+                    </div>
+                    <div class="catalog-toolbar-actions">
+                        <input id="catalogSearchInput" class="search-field" type="search" placeholder="Tìm theo tên sản phẩm" />
+                        <select id="catalogSortSelect" class="store-select">
+                            <option value="featured">Bán chạy nhất</option>
+                            <option value="name-asc">Từ A-Z</option>
+                            <option value="name-desc">Từ Z-A</option>
+                            <option value="price-asc">Giá thấp-cao</option>
+                            <option value="price-desc">Giá cao-thấp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="catalogSubTabs" class="tab-strip compact"></div>
+                <div id="catalogGrid" class="catalog-grid">
+                    <div class="empty-state">Đang tải danh sách sản phẩm...</div>
+                </div>
+                <div id="catalogPagination" class="pagination-chips"></div>
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
             </div>
         </div>
     </div>
 </section>
+<<<<<<< HEAD
 
 <style>
     .product-card-hover {
@@ -137,3 +207,5 @@
         font-weight: 800;
     }
 </style>
+=======
+>>>>>>> b2f0504c96bc3608d57fc3dc336ee4e756b36ed4
