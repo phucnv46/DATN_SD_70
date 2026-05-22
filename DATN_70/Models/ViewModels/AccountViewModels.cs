@@ -141,3 +141,22 @@ public class CustomerReturnItem
     public int SoLuongTra { get; set; }
     public int LyDoKey { get; set; }
 }
+public class ForgotPasswordViewModel
+{
+    [Required(ErrorMessage = "Vui lòng nhập email.")]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}
+
+public class ResetPasswordViewModel
+{
+    public string Token { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới.")]
+    [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự.")]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
+    [Compare("NewPassword", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
+    public string ConfirmPassword { get; set; } = string.Empty;
+}

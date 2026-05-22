@@ -11,7 +11,8 @@
             DangGiao = 3,
             HoanThanh = 4,
             DaHuy = 5,
-            DaDoiTra = 6
+            DaDoiTra = 6,
+            DangChoThanhToanQR = 7
         }
         // 2. Loại giao dịch
         public enum LoaiGiaoDich

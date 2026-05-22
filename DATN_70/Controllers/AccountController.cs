@@ -107,7 +107,15 @@ public class AccountController : Controller
             await _dbContext.SaveChangesAsync();
         }
 
-        return RedirectToAction("Index", "Home");
+        // Phân quyền sau đăng nhập
+        if (user.VaiTroID == "R01" || user.VaiTroID == "R02")
+        {
+            return RedirectToAction("Dashboard", "Admin");
+        }
+        else
+        {
+            return RedirectToAction("Index", "Home");
+        }
     }
 
     // BỔ SUNG: API Trả về trang báo lỗi 403 nếu cố tình hack URL vào trang Admin
@@ -413,6 +421,86 @@ public class AccountController : Controller
         TempData["PasswordStatus"] = "Mật khẩu đã được cập nhật.";
         return RedirectToAction(nameof(Password));
     }
+    // GET: Hiển thị form quên mật khẩu
+    [HttpGet]
+    public IActionResult ForgotPassword()
+    {
+        return View();
+    }
+
+    // POST: Xử lý yêu cầu quên mật khẩu
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var user = await _dbContext.TaiKhoans.FirstOrDefaultAsync(t => t.Email == model.Email);
+        if (user == null)
+        {
+            // Vẫn báo thành công để không lộ thông tin user
+            TempData["ForgotPasswordStatus"] = "Nếu email tồn tại, link đặt lại mật khẩu sẽ được hiển thị.";
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        // Tạo token và lưu vào DB
+        user.ResetToken = Guid.NewGuid().ToString("N");
+        user.ResetTokenExpiry = DateTime.Now.AddMinutes(15);
+        await _dbContext.SaveChangesAsync();
+
+        // Tạo link reset (giả lập gửi email bằng cách hiển thị trên màn hình)
+        var resetLink = Url.Action("ResetPassword", "Account", new { token = user.ResetToken }, Request.Scheme);
+        ViewBag.ResetLink = resetLink;
+
+        return View("ForgotPasswordConfirmation");
+    }
+
+    // GET: Hiển thị trang xác nhận đã gửi link
+    [HttpGet]
+    public IActionResult ForgotPasswordConfirmation()
+    {
+        return View();
+    }
+
+    // GET: Hiển thị form đặt mật khẩu mới
+    [HttpGet]
+    public async Task<IActionResult> ResetPassword(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return RedirectToAction("Login");
+
+        var user = await _dbContext.TaiKhoans.FirstOrDefaultAsync(t => t.ResetToken == token && t.ResetTokenExpiry > DateTime.Now);
+        if (user == null)
+        {
+            TempData["ResetPasswordError"] = "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.";
+            return RedirectToAction("Login");
+        }
+
+        var model = new ResetPasswordViewModel { Token = token };
+        return View(model);
+    }
+
+    // POST: Xử lý đặt mật khẩu mới
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid) return View(model);
+
+        var user = await _dbContext.TaiKhoans.FirstOrDefaultAsync(t => t.ResetToken == model.Token && t.ResetTokenExpiry > DateTime.Now);
+        if (user == null)
+        {
+            ModelState.AddModelError("", "Link không hợp lệ hoặc đã hết hạn.");
+            return View(model);
+        }
+
+        user.MatKhau = model.NewPassword;
+        user.ResetToken = null;
+        user.ResetTokenExpiry = null;
+        await _dbContext.SaveChangesAsync();
+
+        TempData["LoginStatus"] = "Mật khẩu đã được đặt lại thành công. Vui lòng đăng nhập.";
+        return RedirectToAction("Login");
+    }
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(string id)
@@ -423,7 +511,9 @@ public class AccountController : Controller
             return RedirectToAction(nameof(Login));
         }
 
+        // Nạp kèm chi tiết đơn hàng để có thể cộng lại tồn kho
         var order = await _dbContext.HoaDons
+            .Include(h => h.HoaDonChiTiets)
             .FirstOrDefaultAsync(item => item.HoaDonID == id && item.KhachHangID == user.KhachHang!.KhachHangID);
 
         if (order is null)
@@ -431,11 +521,25 @@ public class AccountController : Controller
             return NotFound();
         }
 
-        
         // Cho phép hủy nếu đơn ở trạng thái: Chờ xác nhận (0), Đã xác nhận (1), hoặc Đang chuẩn bị (2)
         // Tức là bất kỳ trạng thái nào nhỏ hơn "Đang giao" (3)
-        if (order.TrangThai < Enums.TrangThaiHoaDon.DangGiao)
+        if (order.TrangThai < Enums.TrangThaiHoaDon.DangGiao || order.TrangThai == Enums.TrangThaiHoaDon.DangChoThanhToanQR)
         {
+            // *** PHẦN XỬ LÝ HOÀN TRẢ TỒN KHO MỚI THÊM VÀO ***
+            // Chỉ cộng lại tồn kho cho đơn hàng đã từng bị trừ (COD hoặc QR đã thanh toán)
+            if (order.TrangThai != Enums.TrangThaiHoaDon.DangChoThanhToanQR) // Loại trừ đơn QR chưa thanh toán (trạng thái 7)
+            {
+                foreach (var detail in order.HoaDonChiTiets)
+                {
+                    var chiTietSP = await _dbContext.ChiTietSanPhams
+                        .FirstOrDefaultAsync(ct => ct.ChiTietSanPhamID == detail.ChiTietSanPhamID);
+                    if (chiTietSP != null)
+                    {
+                        chiTietSP.SoLuongTonKho += detail.SoLuong;
+                    }
+                }
+            }
+
             order.TrangThai = Enums.TrangThaiHoaDon.DaHuy; // Chuyển sang Đã hủy (5)
             await _dbContext.SaveChangesAsync();
             TempData["OrderStatusMessage"] = $"Đã hủy đơn hàng {id} thành công.";
@@ -447,7 +551,6 @@ public class AccountController : Controller
 
         return RedirectToAction(nameof(Orders));
     }
-    [HttpPost]
     public async Task<IActionResult> SubmitReturnRequest([FromBody] CustomerReturnRequest request)
     {
         var user = await GetCurrentAccountAsync();
@@ -752,7 +855,7 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.HoanThanh => "success",
             Enums.TrangThaiHoaDon.DaHuy => "cancelled",
             (Enums.TrangThaiHoaDon)6 => "returned",
-
+            (Enums.TrangThaiHoaDon)7 => "qr_pending",
             _ => "pending"
         };
     }
@@ -768,6 +871,7 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.HoanThanh => "Thành công",
             Enums.TrangThaiHoaDon.DaHuy => "Đã hủy",
             (Enums.TrangThaiHoaDon)6 => "Đã đổi trả",
+            (Enums.TrangThaiHoaDon)7 => "Chờ thanh toán QR",
             _ => "Chờ xác nhận"
         };
     }

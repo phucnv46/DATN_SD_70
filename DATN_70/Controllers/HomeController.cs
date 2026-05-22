@@ -512,6 +512,12 @@ public class HomeController : Controller
             return StatusCode(500, new { message = "Lỗi hệ thống lưu đơn hàng.", error = ex.Message });
         }
     }
+    [HttpGet]
+    public IActionResult Success(string orderId)
+    {
+        ViewBag.OrderId = orderId;
+        return View();
+    }
 
     // ========================================================
     // CÁC LỚP PHỤ TRỢ (NẰM ĐỘC LẬP BÊN NGOÀI CLASS HOMECONTROLLER)

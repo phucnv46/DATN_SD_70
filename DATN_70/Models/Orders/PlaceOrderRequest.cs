@@ -23,4 +23,6 @@ public sealed class PlaceOrderRequest
 
     [MinLength(1)]
     public List<OrderItemRequest> Items { get; set; } = [];
+    public string? PaymentMethod { get; set; }
+    public decimal ShippingFee { get; set; }
 }

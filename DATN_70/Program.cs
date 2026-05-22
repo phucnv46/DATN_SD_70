@@ -1,5 +1,6 @@
-﻿using PayOS; // ĐÃ SỬA: Namespace của bản mới nhất 2.1.0
+﻿using DATN_70.Middlewares;
 using Microsoft.EntityFrameworkCore;
+using PayOS; // ĐÃ SỬA: Namespace của bản mới nhất 2.1.0
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<DATN_70.Data.SqlConnectionFactory>();
 builder.Services.AddScoped<DATN_70.Services.IStoreRepository, DATN_70.Services.StoreRepository>();
-
+builder.Services.AddHostedService<DATN_70.Services.AutoCancelQROrdersService>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddSession();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -45,11 +47,12 @@ app.UseSession();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.UseMiddleware<UserIdMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseStaticFiles();
 app.UseAuthorization();
+app.UseSession();
 app.MapControllers();
-
 app.Run();

@@ -1,4 +1,4 @@
-using DATN_70.Models.Orders;
+﻿using DATN_70.Models.Orders;
 using DATN_70.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,21 +17,29 @@ public sealed class OrdersController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<OrderCreatedResponse>> PlaceOrder(
-        [FromBody] PlaceOrderRequest request,
-        CancellationToken cancellationToken)
+    [FromBody] PlaceOrderRequest request,
+    CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
         }
 
-        var result = await _storeRepository.PlaceOrderAsync(request, cancellationToken);
-
-        if (!result.Success)
+        try
         {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
+            var result = await _storeRepository.PlaceOrderAsync(request, cancellationToken);
 
-        return Ok(result.Data);
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.ErrorMessage });
+            }
+
+            return Ok(result.Data);
+        }
+        catch (Exception ex)
+        {
+            // Trả thẳng lỗi ra để xem
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 }

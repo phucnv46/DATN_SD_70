@@ -219,7 +219,10 @@ public sealed class StoreRepository : IStoreRepository
             foreach (var detail in orderDetails)
             {
                 await InsertOrderDetailAsync(connection, transaction, orderId, detail, cancellationToken);
-                await UpdateStockAsync(connection, transaction, detail.ProductDetailId, detail.Quantity, cancellationToken);
+                if (request.PaymentMethod != "QR")
+                {
+                    await UpdateStockAsync(connection, transaction, detail.ProductDetailId, detail.Quantity, cancellationToken);
+                }
             }
 
             await transaction.CommitAsync(cancellationToken);
@@ -294,18 +297,20 @@ public sealed class StoreRepository : IStoreRepository
 
     private static async Task InsertOrderAsync(SqlConnection connection, SqlTransaction transaction, string orderId, PlaceOrderRequest request, DateTime createdAt, decimal totalAmount, CancellationToken cancellationToken)
     {
-        const string sql = """
-        INSERT INTO HoaDons (HoaDonID, TongTienVAT, TongTienGiamGia, ThanhTien, LoaiGiaoDich, NgayTao, TrangThai, GhiChu, KhachHangID, NhanVienID, DiaChiID, KhuyenMaiID)
-        VALUES (@HoaDonID, @TongTienVAT, 0, @ThanhTien, 0, @NgayTao, 0, @GhiChu, @KhachHangID, N'NV0001', @DiaChiID, NULL);
-        """;
+        const string sql = @"
+INSERT INTO HoaDons (HoaDonID, TongTienVAT, TongTienGiamGia, ThanhTien, LoaiGiaoDich, NgayTao, TrangThai, GhiChu, KhachHangID, NhanVienID, DiaChiID, KhuyenMaiID)
+VALUES (@HoaDonID, @TongTienVAT, 0, @ThanhTien, 0, @NgayTao, @TrangThai, @GhiChu, @KhachHangID, N'NV0001', @DiaChiID, NULL)";
         decimal tienVat = Math.Round(totalAmount * 0.1m, 0);
-        decimal thanhTienMoi = totalAmount + tienVat;
+
+        decimal shippingFee = request.ShippingFee;
+        decimal thanhTienMoi = totalAmount + tienVat + shippingFee;
 
         await using var command = new SqlCommand(sql, connection, transaction);
         command.Parameters.AddWithValue("@HoaDonID", orderId);
         command.Parameters.AddWithValue("@TongTienVAT", tienVat);
         command.Parameters.AddWithValue("@ThanhTien", thanhTienMoi);
         command.Parameters.AddWithValue("@NgayTao", createdAt);
+        command.Parameters.AddWithValue("@TrangThai", request.PaymentMethod == "QR" ? 7 : 0);
         command.Parameters.AddWithValue("@GhiChu", "Đơn đặt từ Website bán hàng. ĐC giao: " + request.DiaChiGiaoHang);
         command.Parameters.AddWithValue("@KhachHangID", request.KhachHangID);
         command.Parameters.AddWithValue("@DiaChiID", request.DiaChiID);

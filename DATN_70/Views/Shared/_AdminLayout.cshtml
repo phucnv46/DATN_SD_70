@@ -89,6 +89,15 @@
             background-color: #fff1f1;
             color: #f52222;
         }
+
+        .badge-qr-pending {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .hidden-date-inputs {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -100,6 +109,7 @@
             </div>
 
             <nav class="nav flex-column mt-3 flex-grow-1">
+                <a href="/Admin/Dashboard" id="menu-dashboard" class="nav-link"><i class="bi bi-speedometer2"></i> Tổng quan (Dashboard)</a>
                 <a href="/Admin/Orders" id="menu-orders" class="nav-link"><i class="bi bi-receipt"></i> Quản lý hóa đơn</a>
                 <a href="/Admin/Products" id="menu-products" class="nav-link"><i class="bi bi-box-seam"></i> Quản lý sản phẩm</a>
                 <a href="/Admin/Attributes" id="menu-attributes" class="nav-link"><i class="bi bi-sliders"></i> Thuộc tính sản phẩm</a>
@@ -146,7 +156,17 @@
             });
         });
     </script>
-
+    <script>
+        const path = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        if (path.includes('/Admin/Dashboard')) document.getElementById('menu-dashboard')?.classList.add('active');
+        else if (path.includes('/Admin/Orders')) document.getElementById('menu-orders')?.classList.add('active');
+        else if (path.includes('/Admin/Products')) document.getElementById('menu-products')?.classList.add('active');
+        else if (path.includes('/Admin/Attributes')) document.getElementById('menu-attributes')?.classList.add('active');
+        else if (path.includes('/Admin/Accounts')) document.getElementById('menu-accounts')?.classList.add('active');
+        else if (path.includes('/Admin/Promotions')) document.getElementById('menu-promotions')?.classList.add('active');
+        else if (path.includes('/Admin/POS')) document.getElementById('menu-pos')?.classList.add('active');
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

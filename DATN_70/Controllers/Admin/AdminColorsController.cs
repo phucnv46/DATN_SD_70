@@ -1,4 +1,5 @@
-﻿using DATN_70.Data;
+﻿using DATN_70.Attributes;
+using DATN_70.Data;
 using DATN_70.Models.Admin;
 using DATN_70.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ namespace DATN_70.Controllers.Admin
 {
     [ApiController]
     [Route("api/admin/colors")]
+    [CustomAuthorize("R01", "R02")]
     public class AdminColorsController : ControllerBase
     {
         private readonly AppDbContext _context;

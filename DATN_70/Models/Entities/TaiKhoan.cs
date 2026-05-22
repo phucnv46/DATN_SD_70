@@ -26,5 +26,9 @@ namespace DATN_70.Models.Entities
         public GioHang GioHang { get; set; }        
         public KhachHang KhachHang { get; set; }
         public NhanVien NhanVien { get; set; }
+        [MaxLength(255)]
+        public string? ResetToken { get; set; }
+
+        public DateTime? ResetTokenExpiry { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using DATN_70.Data;
+﻿using DATN_70.Attributes;
+using DATN_70.Data;
 using DATN_70.Models.Admin;
 using DATN_70.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace DATN_70.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/products")]
+[CustomAuthorize("R01", "R02")]
 public sealed class AdminProductsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -75,8 +77,13 @@ public sealed class AdminProductsController : ControllerBase
 
     // 3. THÊM MỚI SẢN PHẨM (TỰ ĐỘNG BĂM SKU TRÁNH LỖI SẬP DB)
     [HttpPost("create")]
+
     public async Task<IActionResult> Create([FromForm] ProductCreateRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
         var productId = "SP" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
 
         var sanPham = new SanPham
@@ -92,6 +99,12 @@ public sealed class AdminProductsController : ControllerBase
 
         foreach (var vt in request.BienThes)
         {
+            var sku = $"{productId}-{vt.MauID}-{vt.KichCoID}";
+            bool skuExists = await _context.ChiTietSanPhams.AnyAsync(c => c.SKU == sku);
+            if (skuExists)
+            {
+                return BadRequest(new { message = $"Biến thể {sku} đã tồn tại trong hệ thống." });
+            }
             var variantId = "CT" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
             var chiTiet = new ChiTietSanPham
             {

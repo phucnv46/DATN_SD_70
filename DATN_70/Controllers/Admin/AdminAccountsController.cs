@@ -1,4 +1,5 @@
-﻿using DATN_70.Data;
+﻿using DATN_70.Attributes;
+using DATN_70.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -7,6 +8,7 @@ namespace DATN_70.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/accounts")]
+[CustomAuthorize("R01", "R02")]
 public sealed class AdminAccountsController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

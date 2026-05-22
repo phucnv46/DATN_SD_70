@@ -1,0 +1,10 @@
+﻿@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<div class="container my-5 text-center">
+    <i class="bi bi-check-circle-fill text-success display-1"></i>
+    <h2 class="fw-bold mt-3">Đặt hàng thành công!</h2>
+    <p class="text-muted">Mã đơn hàng của bạn là: <strong>@ViewBag.OrderId</strong></p>
+    <a href="/Account/Orders" class="btn btn-dark rounded-pill px-4 mt-3">Xem đơn hàng</a>
+</div>

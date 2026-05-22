@@ -15,6 +15,7 @@
             "return_pending" => "bg-warning text-dark border border-warning",
             "return_rejected" => "bg-danger-subtle text-danger border border-danger",
             "returned" => "bg-light text-dark border border-dark fw-bold", // Màu chữ đen nền xám nhạt tinh tế
+            "qr_pending" => "badge-qr-pending",
             _ => "bg-secondary"
         };
     }
@@ -137,14 +138,17 @@
                                                 </button>
                                             </form>
                                         }
-                                        else if (order.StatusKey == "success")
+                                        else if (order.StatusKey == "qr_pending")
                                         {
-                                            // CHỈ HIỂN THỊ NÚT KHI ĐƠN THÀNH CÔNG VÀ CHƯA CÓ PHIẾU KHIẾU NẠI ĐỔI TRẢ NÀO
-                                            <button type="button" class="btn btn-sm btn-warning px-3 rounded-pill fw-medium btn-open-rma"
-                                                    data-id="@order.Id"
-                                                    data-items='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(order.Items))'>
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i> Yêu cầu Đổi / Trả
+                                            <button type="button" class="btn btn-sm btn-primary px-3 rounded-pill fw-medium btn-pay-qr" data-order-id="@order.Id">
+                                                <i class="bi bi-qr-code-scan me-1"></i> Thanh toán ngay
                                             </button>
+                                            <form asp-controller="Account" asp-action="CancelOrder" asp-route-id="@order.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');" class="d-inline ms-2">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-medium">
+                                                    <i class="bi bi-x-circle me-1"></i> Hủy đơn hàng
+                                                </button>
+                                            </form>
                                         }
                                     </div>
                                 </div>
@@ -195,7 +199,27 @@
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="webQrModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white rounded-top-4 py-3">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-qr-code-scan me-2"></i>QUÉT MÃ THANH TOÁN ĐƠN HÀNG</h5>
+            </div>
+            <div class="modal-body p-0 bg-light overflow-hidden position-relative" style="height: 520px;">
+                <iframe id="webPayOSIframe" src="" width="100%" height="100%" frameborder="0"></iframe>
+            </div>
+            <div class="modal-footer bg-white border-top-0 d-flex gap-2 py-3">
+                <button type="button" class="btn btn-outline-secondary rounded-3 px-4" id="btnCancelPaymentFromOrders">
+                    <i class="bi bi-clock-history me-1"></i> Để sau
+                </button>
+                <div class="d-flex align-items-center text-danger fw-bold small">
+                    <div class="spinner-grow spinner-grow-sm text-danger me-2" role="status"></div>
+                    <span>Hệ thống đang kiểm tra trạng thái giao dịch tự động...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @section Scripts {
     <script>
         $(document).ready(function() {
@@ -281,5 +305,50 @@
                 });
             });
         });
+                // Xử lý nút "Thanh toán ngay" cho đơn QR
+        $(document).on('click', '.btn-pay-qr', async function() {
+            const orderId = $(this).data('order-id');
+            const btn = $(this);
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Đang tạo link...');
+
+            try {
+                const response = await fetch('/api/payment/create-online-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hoaDonID: orderId })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // Lưu vào sessionStorage để chống F5
+                    sessionStorage.setItem('pendingPayOSOrderCode', result.orderCode);
+                    sessionStorage.setItem('pendingHoaDonID', orderId);
+
+                    // Mở popup QR
+                    const iframe = document.getElementById('webPayOSIframe');
+                    iframe.src = result.checkoutUrl;
+                    new bootstrap.Modal(document.getElementById('webQrModal')).show();
+                } else {
+                    alert("Lỗi tạo link thanh toán: " + result.message);
+                }
+            } catch (err) {
+                alert("Lỗi kết nối.");
+            } finally {
+                btn.prop('disabled', false).html('<i class="bi bi-qr-code-scan me-1"></i> Thanh toán ngay');
+            }
+        });
+                $(document).on('click', '#btnCancelPaymentFromOrders', function() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('webQrModal'));
+            if (modal) modal.hide();
+            document.getElementById('webPayOSIframe').src = '';
+
+            sessionStorage.removeItem('pendingPayOSOrderCode');
+            sessionStorage.removeItem('pendingHoaDonID');
+        });
     </script>
+    <style>
+        .badge.badge-qr-pending {
+            background-color: #f3e8ff !important;
+            color: #4c1d95 !important;
+        }
+    </style>
 }

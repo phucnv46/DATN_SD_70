@@ -252,7 +252,7 @@ public class AdminPOSController : ControllerBase
             var activePhuongThucId = await _dbContext.Set<PhuongThucThanhToan>().Select(p => p.PhuongThucThanhToanID).FirstOrDefaultAsync(cancellationToken) ?? "PT_DEFAULT";
 
             // Sinh mã OrderCode dạng số nguyên độc nhất cho PayOS
-            long payOsOrderCode = long.Parse(DateTime.Now.ToString("ddHHmmss"));
+            long payOsOrderCode = GenerateUniquePayOSOrderCode();
             string finalMaThamChieu = request.KieuThanhToan == 1 ? payOsOrderCode.ToString() : (request.MaThamChieu ?? string.Empty);
 
             var cttt = new ChiTietThanhToan
@@ -281,7 +281,9 @@ public class AdminPOSController : ControllerBase
                 {
                     OrderCode = payOsOrderCode,
                     Amount = (int)thanhTienCuoiCung,
-                    Description = $"WINTERWEB {payOsOrderCode}",
+                    Description = $"POS{payOsOrderCode}".Length > 25
+                    ? $"POS{payOsOrderCode}".Substring(0, 25)
+                    : $"POS{payOsOrderCode}",
                     CancelUrl = "https://localhost:7220/Home/Cart",
                     ReturnUrl = "https://localhost:7220/Home/Success"
                 };
@@ -307,6 +309,12 @@ public class AdminPOSController : ControllerBase
             await transaction.RollbackAsync(cancellationToken);
             return StatusCode(500, new { message = "Lỗi xử lý giao dịch đơn hàng.", error = ex.Message });
         }
+    }
+    private long GenerateUniquePayOSOrderCode()
+    {
+        var timestampPart = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+        var randomPart = new Random().Next(100, 999).ToString();
+        return long.Parse(timestampPart + randomPart);
     }
 }
 

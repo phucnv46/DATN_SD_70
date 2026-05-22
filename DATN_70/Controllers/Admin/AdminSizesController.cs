@@ -1,4 +1,5 @@
-﻿using DATN_70.Data;
+﻿using DATN_70.Attributes;
+using DATN_70.Data;
 using DATN_70.Models.Admin;
 using DATN_70.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ namespace DATN_70.Controllers.Admin
 {
     [ApiController]
     [Route("api/admin/sizes")]
+    [CustomAuthorize("R01", "R02")]
     public class AdminSizesController : ControllerBase
     {
         private readonly AppDbContext _context;

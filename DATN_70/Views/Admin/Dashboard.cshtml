@@ -1,0 +1,198 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
+}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="fw-bold me-2">Khoảng thời gian:</span>
+                    <div class="btn-group btn-group-sm" role="group" id="dateRangeButtons">
+                        <button type="button" class="btn btn-outline-dark active" data-range="today">Hôm nay</button>
+                        <button type="button" class="btn btn-outline-dark" data-range="7days">7 ngày qua</button>
+                        <button type="button" class="btn btn-outline-dark" data-range="30days">30 ngày qua</button>
+                        <button type="button" class="btn btn-outline-dark" data-range="custom">Tùy chỉnh</button>
+                    </div>
+                    <div id="customDateInputs" class="hidden-date-inputs d-flex gap-2 align-items-center ms-2">
+                        <input type="date" id="fromDate" class="form-control form-control-sm w-auto" />
+                        <span class="text-muted">đến</span>
+                        <input type="date" id="toDate" class="form-control form-control-sm w-auto" />
+                    </div>
+                    <button id="applyFilter" class="btn btn-dark btn-sm rounded-3 ms-2">Áp dụng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h6 class="card-title">Tổng doanh thu</h6>
+                <h3 id="totalRevenue">0 đ</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Đơn thành công</h6>
+                <h3 id="successOrders">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h6 class="card-title">Đang xử lý</h6>
+                <h3 id="processingOrders">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Sản phẩm đã bán</h6>
+                <h3 id="totalItemsSold">0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header fw-bold">Doanh thu</div>
+            <div class="card-body">
+                <canvas id="revenueChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header fw-bold">Top 5 sản phẩm</div>
+            <div class="card-body">
+                <canvas id="topProductsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+                let revenueChart, topProductsChart;
+        let currentRange = 'today';
+        document.getElementById('customDateInputs').classList.add('hidden-date-inputs');
+        // Ẩn ô nhập ngày tùy chỉnh ngay khi load trang (vì mặc định là 'today')
+        document.getElementById('customDateInputs').style.display = 'none';
+
+        // Xử lý nút chọn khoảng thời gian
+        document.querySelectorAll('#dateRangeButtons button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#dateRangeButtons button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentRange = this.dataset.range;
+
+                // Ẩn/hiện ô nhập ngày dựa trên nút được chọn
+                        const customInputs = document.getElementById('customDateInputs');
+        if (currentRange === 'custom') {
+            customInputs.classList.remove('hidden-date-inputs');
+        } else {
+            customInputs.classList.add('hidden-date-inputs');
+        }
+            });
+        });
+
+        function getDateRange() {
+            const now = new Date();
+            let from, to;
+            if (currentRange === 'today') {
+                from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                to = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            } else if (currentRange === '7days') {
+                from = new Date(now);
+                from.setDate(from.getDate() - 6);
+                from.setHours(0,0,0,0);
+                to = new Date(now);
+                to.setHours(23,59,59,999);
+            } else if (currentRange === '30days') {
+                from = new Date(now);
+                from.setDate(from.getDate() - 29);
+                from.setHours(0,0,0,0);
+                to = new Date(now);
+                to.setHours(23,59,59,999);
+            } else if (currentRange === 'custom') {
+                from = document.getElementById('fromDate').valueAsDate;
+                to = document.getElementById('toDate').valueAsDate;
+                if (!from || !to) {
+                    alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc.');
+                    return null;
+                }
+                if (from > to) {
+                    alert('Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.');
+                    return null;
+                }
+                const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+                if (to > todayEnd) {
+                    alert('Ngày kết thúc không được vượt quá hôm nay.');
+                    return null;
+                }
+                to.setHours(23,59,59,999);
+            }
+            return { from, to };
+        }
+
+        async function loadDashboard() {
+            const range = getDateRange();
+            if (!range) return;
+
+            const params = new URLSearchParams();
+            if (range.from) params.append('fromDate', range.from.toISOString());
+            if (range.to) params.append('toDate', range.to.toISOString());
+
+            const summary = await fetch(`/api/admin/reports/summary?${params}`).then(r => r.json());
+            document.getElementById('totalRevenue').textContent = (summary.totalRevenue || 0).toLocaleString('vi-VN') + ' đ';
+            document.getElementById('successOrders').textContent = summary.successOrders || 0;
+            document.getElementById('processingOrders').textContent = summary.processingOrders || 0;
+            document.getElementById('totalItemsSold').textContent = summary.totalItemsSold || 0;
+
+            const revenueData = await fetch(`/api/admin/reports/revenue-over-time?${params}`).then(r => r.json());
+            if (revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(document.getElementById('revenueChart'), {
+                type: 'line',
+                data: {
+                    labels: revenueData.map(d => new Date(d.date).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })),
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: revenueData.map(d => d.revenue),
+                        borderColor: '#3699ff',
+                        backgroundColor: 'rgba(54,153,255,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            const topProducts = await fetch(`/api/admin/reports/top-products?limit=5&${params}`).then(r => r.json());
+            if (topProductsChart) topProductsChart.destroy();
+            topProductsChart = new Chart(document.getElementById('topProductsChart'), {
+                type: 'bar',
+                data: {
+                    labels: topProducts.map(p => p.productName),
+                    datasets: [{
+                        label: 'Đã bán',
+                        data: topProducts.map(p => p.totalSold),
+                        backgroundColor: '#50cd89'
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        document.getElementById('applyFilter').addEventListener('click', loadDashboard);
+        loadDashboard();
+    </script>
+}

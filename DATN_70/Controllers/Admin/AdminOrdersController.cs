@@ -1,4 +1,5 @@
-﻿using DATN_70.Controllers;
+﻿using DATN_70.Attributes;
+using DATN_70.Controllers;
 using DATN_70.Data;
 using DATN_70.Models.Entities;
 using DATN_70.Models.Enums;
@@ -10,6 +11,7 @@ namespace DATN_70.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/orders")]
+[CustomAuthorize("R01", "R02")]
 public sealed class AdminOrdersController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
@@ -43,7 +45,7 @@ public sealed class AdminOrdersController : ControllerBase
             .OrderByDescending(h => h.NgayTao)
             .Select(h => new AdminOrderSummaryResponse
             {
-                // ĐÃ SỬA: Xóa bỏ hoàn toàn thuộc tính thừa Id gây lỗi CS0117
+                
                 HoaDonId = h.HoaDonID,
                 NgayTao = h.NgayTao,
                 TenKhachHang = h.KhachHang != null ? h.KhachHang.Ten : "Khách ẩn danh",
@@ -294,6 +296,7 @@ public sealed class AdminOrdersController : ControllerBase
             case "shipping": orderStatus = Enums.TrangThaiHoaDon.DangGiao; return true;
             case "success": orderStatus = Enums.TrangThaiHoaDon.HoanThanh; return true;
             case "cancelled": orderStatus = Enums.TrangThaiHoaDon.DaHuy; return true;
+            case "qr_pending": orderStatus = Enums.TrangThaiHoaDon.DangChoThanhToanQR; return true;
             default: orderStatus = Enums.TrangThaiHoaDon.ChoDuyet; return false;
         }
     }
@@ -309,6 +312,7 @@ public sealed class AdminOrdersController : ControllerBase
             Enums.TrangThaiHoaDon.HoanThanh => "success",
             Enums.TrangThaiHoaDon.DaHuy => "cancelled",
             Enums.TrangThaiHoaDon.DaDoiTra => "returned",
+            Enums.TrangThaiHoaDon.DangChoThanhToanQR => "qr_pending",
             _ => "pending"
         };
     }
@@ -324,6 +328,7 @@ public sealed class AdminOrdersController : ControllerBase
             Enums.TrangThaiHoaDon.HoanThanh => "Thành công",
             Enums.TrangThaiHoaDon.DaHuy => "Đã hủy",
             Enums.TrangThaiHoaDon.DaDoiTra => "Đã đổi trả",
+            Enums.TrangThaiHoaDon.DangChoThanhToanQR => "Chờ thanh toán QR",
             _ => "Chờ xác nhận"
         };
     }

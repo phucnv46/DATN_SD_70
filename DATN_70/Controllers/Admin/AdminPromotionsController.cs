@@ -1,4 +1,5 @@
-﻿using DATN_70.Data;
+﻿using DATN_70.Attributes;
+using DATN_70.Data;
 using DATN_70.Models.Entities;
 using DATN_70.Models.Enums;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ namespace DATN_70.Controllers.Admin;
 
 [ApiController]
 [Route("api/admin/promotions")]
+[CustomAuthorize("R01", "R02")]
 public sealed class AdminPromotionsController : ControllerBase
 {
     private readonly AppDbContext _dbContext;

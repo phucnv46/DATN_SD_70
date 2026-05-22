@@ -459,7 +459,7 @@
                         <div class="col-sm-6 col-md-4 col-lg-3">
                             <div class="card h-100 product-card shadow-xs" onclick="addProductToActiveCart('${p.chiTietSanPhamID}')">
                                 <div class="position-relative bg-light text-center d-flex align-items-center justify-content-center border-bottom" style="height: 120px; overflow: hidden; border-top-left-radius: 7px; border-top-right-radius: 7px;">
-                                    <img src="${imgUrl}" class="img-fluid" alt="${p.tenSanPham}" style="max-height: 100%; max-width: 100%; object-fit: cover;" onerror="this.src='/images/default-product.png';" />
+                                   <img src="${imgUrl}" class="img-fluid" alt="${p.tenSanPham}" style="max-height: 100%; max-width: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='/images/default-product.png';" />
                                 </div>
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div>
@@ -607,7 +607,7 @@
             }
         }
 
-        // ==========================================
+                // ==========================================
         // 3. TÌM KIẾM KHÁCH HÀNG VÀ THÊM NHANH AJAX
         // ==========================================
         $(document).ready(function() {
@@ -709,8 +709,9 @@
             });
 
             $('#numCustomerCash').on('input', function() { calculateRefundCash(); });
+        });
 
-                    // ==========================================
+        // ==========================================
         // 4. XỬ LÝ GỬI ĐƠN LÊN BACKEND & GỌI LỆNH IN NHIỆT ẢO
         // ==========================================
         let currentFinalAmt = 0;
@@ -730,20 +731,29 @@
                 processFinalCheckoutDB();
             }
             else if (currentKieuPay === 1) {
-                // TRƯỜNG HỢP 2: CHUYỂN KHOẢN QR -> Gọi PayOS lấy link
+                // TRƯỜNG HỢP 2: CHUYỂN KHOẢN QR -> Gọi API CheckoutPOS để lấy link và tạo QR
                 let btn = $(this);
                 let originalText = btn.html();
                 btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Đang tạo mã QR...');
 
                 $.ajax({
-                    url: '/api/payment/create-payment',
+                    url: '/api/admin/pos/checkout',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ Amount: currentFinalAmt }), // Truyền số tiền thật
+                    data: JSON.stringify({
+                        khachHangID: activeTab.customerId,
+                         diaChiID: "DC_POS_SYSTEM",
+                        khuyenMaiID: activeTab.voucherId || null,
+                        ghiChu: activeTab.note || "Bán trực tiếp tại quầy thu ngân",
+                        kieuThanhToan: currentKieuPay,
+                        items: activeTab.items.map(item => ({
+                            chiTietSanPhamID: item.id,
+                            soLuongMua: item.qty
+                        }))
+                    }),
                     success: function(res) {
                         btn.prop('disabled', false).html(originalText);
-                        if(res.success) {
-                            // Đổ link PayOS vào Iframe và bật Pop-up lên
+                        if (res.kieuThanhToan === 1 && res.checkoutUrl) {
                             $('#iframePayOS').attr('src', res.checkoutUrl);
                             $('#modalQRCode').modal('show');
                         }
@@ -772,6 +782,7 @@
 
             let checkoutPayload = {
                 KhachHangID: activeTab.customerId,
+                DiaChiID: "DC_POS_SYSTEM",
                 KhuyenMaiID: activeTab.voucherId || null,
                 GhiChu: activeTab.note || "Bán trực tiếp tại quầy thu ngân",
                 KieuThanhToan: currentKieuPay,
@@ -811,42 +822,41 @@
             });
         }
 
-            function executeInvoicePrintJob(invoiceId, formattedTime, tabData) {
-                let d = new Date(formattedTime);
-                $('#printOrderTime').text(`Ngày: ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}`);
-                $('#printInvoiceId').text(`Mã HĐ: ${invoiceId}`);
-                $('#printCustomer').text(tabData.customerId === 'KH000000' ? 'Khách lẻ' : `${tabData.customerName} - ${tabData.customerPhone}`);
+        function executeInvoicePrintJob(invoiceId, formattedTime, tabData) {
+            let d = new Date(formattedTime);
+            $('#printOrderTime').text(`Ngày: ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}`);
+            $('#printInvoiceId').text(`Mã HĐ: ${invoiceId}`);
+            $('#printCustomer').text(tabData.customerId === 'KH000000' ? 'Khách lẻ' : `${tabData.customerName} - ${tabData.customerPhone}`);
 
-                let htmlItems = '';
-                let totalGoodsPrice = 0;
-                let totalVatAmt = 0;
+            let htmlItems = '';
+            let totalGoodsPrice = 0;
+            let totalVatAmt = 0;
 
-                tabData.items.forEach(item => {
-                    let totalItem = item.price * item.qty;
-                    totalGoodsPrice += totalItem;
-                    totalVatAmt += (totalItem * item.vatRate / 100);
-                    htmlItems += `
-                        <tr>
-                            <td>
-                                <div><strong>${item.name}</strong></div>
-                                <div style="font-size:9px; color:#555;">Phân loại: ${item.variant}</div>
-                            </td>
-                            <td style="text-align:center;">${item.qty}</td>
-                            <td style="text-align:right;">${totalItem.toLocaleString('vi-VN')} đ</td>
-                        </tr>`;
-                });
+            tabData.items.forEach(item => {
+                let totalItem = item.price * item.qty;
+                totalGoodsPrice += totalItem;
+                totalVatAmt += (totalItem * item.vatRate / 100);
+                htmlItems += `
+                    <tr>
+                        <td>
+                            <div><strong>${item.name}</strong></div>
+                            <div style="font-size:9px; color:#555;">Phân loại: ${item.variant}</div>
+                        </td>
+                        <td style="text-align:center;">${item.qty}</td>
+                        <td style="text-align:right;">${totalItem.toLocaleString('vi-VN')} đ</td>
+                    </tr>`;
+            });
 
-                $('#printInvoiceItemsBody').html(htmlItems);
-                $('#printTotalGoods').text(`${totalGoodsPrice.toLocaleString('vi-VN')} đ`);
-                $('#printTotalVat').text(`${totalVatAmt.toLocaleString('vi-VN')} đ`);
-                $('#printDiscount').text(`-${tabData.discountAmount.toLocaleString('vi-VN')} đ`);
-                $('#printFinalAmount').text($('#lblFinalPrice').text());
+            $('#printInvoiceItemsBody').html(htmlItems);
+            $('#printTotalGoods').text(`${totalGoodsPrice.toLocaleString('vi-VN')} đ`);
+            $('#printTotalVat').text(`${totalVatAmt.toLocaleString('vi-VN')} đ`);
+            $('#printDiscount').text(`-${tabData.discountAmount.toLocaleString('vi-VN')} đ`);
+            $('#printFinalAmount').text($('#lblFinalPrice').text());
 
-                $('#invoice-print-template').removeClass('d-none');
-                window.print();
-                $('#invoice-print-template').addClass('d-none');
-            }
-        });
+            $('#invoice-print-template').removeClass('d-none');
+            window.print();
+            $('#invoice-print-template').addClass('d-none');
+        }
     </script>
 </body>
 </html>
