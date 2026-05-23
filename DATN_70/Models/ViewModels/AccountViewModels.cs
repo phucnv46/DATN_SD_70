@@ -8,7 +8,6 @@ public sealed class AccountProfileViewModel
     public string KhachHangId { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
-    [Display(Name = "Họ và tên")]
     public string FullName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập email.")]
@@ -16,12 +15,9 @@ public sealed class AccountProfileViewModel
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
-    [Display(Name = "Số điện thoại")]
     public string Phone { get; set; } = string.Empty;
 
-    [Display(Name = "Địa chỉ mặc định")]
     public string DefaultAddressText { get; set; } = string.Empty;
-
     public string? StatusMessage { get; set; }
 }
 
@@ -34,7 +30,7 @@ public sealed class AccountAddressPageViewModel
 
 public sealed class AddressFormViewModel
 {
-    public string Id { get; set; } = string.Empty;
+    public string? Id { get; set; }
 
     [Required(ErrorMessage = "Vui lòng nhập tên người nhận.")]
     [Display(Name = "Tên người nhận")]

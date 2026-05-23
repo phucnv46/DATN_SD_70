@@ -39,6 +39,7 @@
                     <option value="shipping">Đang giao</option>
                     <option value="success">Thành công</option>
                     <option value="cancelled">Đã hủy</option>
+                    <option value="delivery_failed">Giao thất bại</option>
                 </select>
             </div>
             <div class="table-responsive">
@@ -241,7 +242,13 @@
                         buttonsHtml = `
                             <button class="btn btn-sm text-white btn-process-order" style="background-color: #7239ea;" data-action="next"><i class="bi bi-truck me-1"></i> Bàn giao vận chuyển</button>
                             <button class="btn btn-outline-danger btn-sm fw-medium btn-process-order" data-action="cancel"><i class="bi bi-x-circle me-1"></i> Hủy đơn</button>`;
-                    } else if (order.trangThaiKey === 'shipping') {
+                    }
+                                    else if (order.trangThaiKey === 'shipping') {
+            buttonsHtml = `
+                <button class="btn btn-success btn-sm fw-medium btn-process-order" data-action="next"><i class="bi bi-bag-check me-1"></i> Xác nhận thành công</button>
+                <button class="btn btn-outline-danger btn-sm fw-medium btn-process-order" data-action="fail"><i class="bi bi-truck me-1"></i> Giao thất bại</button>
+                <button class="btn btn-outline-secondary btn-sm fw-medium btn-process-order" data-action="reschedule"><i class="bi bi-clock-history me-1"></i> Hẹn giao lại</button>`;
+        }   else if (order.trangThaiKey === 'shipping') {
                         buttonsHtml = `<button class="btn btn-success btn-sm fw-medium btn-process-order" data-action="next"><i class="bi bi-bag-check me-1"></i> Xác nhận thành công</button>`;
                     } else if (order.trangThaiKey === 'success') {
                         // KHI ĐƠN THÀNH CÔNG: Đẻ thêm nút Lập phiếu Đổi/Trả hàng kích hoạt RMA Module
@@ -299,25 +306,44 @@
             });
 
             // 4. ĐIỀU PHỐI ĐƠN HÀNG MỘT CHIỀU (NÚT XÁC NHẬN/HỦY)
-            $(document).on('click', '.btn-process-order', function() {
-                const orderId = $('#modalOrderId').text();
-                const actionType = $(this).data('action');
-                const confirmMsg = actionType === 'cancel' ? "Bạn có chắc chắn muốn HỦY đơn hàng này không?" : "Xác nhận chuyển đơn hàng này sang trạng thái tiếp theo?";
-                if(!confirm(confirmMsg)) return;
+                    $(document).on('click', '.btn-process-order', function() {
+            const orderId = $('#modalOrderId').text();
+            const actionType = $(this).data('action');
+
+            if (actionType === 'reschedule') {
+                const reason = prompt("Nhập lý do hoặc thời gian hẹn giao lại:");
+                if (!reason || reason.trim() === '') return;
 
                 $.ajax({
                     url: `/api/admin/orders/${orderId}/status`,
                     type: 'PUT',
                     contentType: 'application/json',
-                    data: JSON.stringify({ action: actionType }),
-                    success: function() {
+                    data: JSON.stringify({ action: actionType, ghiChu: reason.trim() }),
+                    success: function(res) {
+                        alert(res.message);
                         $('#orderModal').modal('hide');
                         loadOrders($('#statusFilter').val());
                     },
-                    error: function(err) { alert(err.responseJSON?.message || "Lỗi xử lý tiến độ đơn hàng."); }
+                    error: function(err) { alert(err.responseJSON?.message || "Lỗi khi lưu ghi chú hẹn giao."); }
                 });
-            });
+                return;
+            }
 
+            const confirmMsg = actionType === 'cancel' ? "Bạn có chắc chắn muốn HỦY đơn hàng này không?" : "Xác nhận chuyển đơn hàng này sang trạng thái tiếp theo?";
+            if(!confirm(confirmMsg)) return;
+
+            $.ajax({
+                url: `/api/admin/orders/${orderId}/status`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({ action: actionType }),
+                success: function() {
+                    $('#orderModal').modal('hide');
+                    loadOrders($('#statusFilter').val());
+                },
+                error: function(err) { alert(err.responseJSON?.message || "Lỗi xử lý tiến độ đơn hàng."); }
+            });
+        });
             // ==========================================
             // LOGIC XỬ LÝ EVENT MỚI: BẤM NÚT LẬP PHIẾU ĐỔI TRẢ
             // ==========================================
@@ -451,4 +477,11 @@
         });
         });
     </script>
+    <style>
+        .badge-delivery_failed {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+            border: 1px solid #ffc107 !important;
+        }
+    </style>
 }

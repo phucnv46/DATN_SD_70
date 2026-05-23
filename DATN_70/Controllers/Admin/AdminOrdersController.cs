@@ -139,7 +139,65 @@ public sealed class AdminOrdersController : ControllerBase
             {
                 return BadRequest(new { message = "Đơn hàng đã kết thúc tiến trình." });
             }
+
+            // Nếu duyệt đơn từ Chờ xác nhận (0) -> Đã xác nhận (1) thì tiến hành trừ kho
+            if (order.TrangThai == Enums.TrangThaiHoaDon.ChoDuyet)
+            {
+                var chiTietList = await _dbContext.HoaDonChiTiets
+                    .Where(hdct => hdct.HoaDonID == order.HoaDonID)
+                    .ToListAsync();
+
+                foreach (var item in chiTietList)
+                {
+                    var ctsp = await _dbContext.ChiTietSanPhams
+                        .FirstOrDefaultAsync(ct => ct.ChiTietSanPhamID == item.ChiTietSanPhamID);
+                    if (ctsp != null)
+                    {
+                        ctsp.SoLuongTonKho -= item.SoLuong;
+                    }
+                }
+            }
+
             order.TrangThai = (Enums.TrangThaiHoaDon)((int)order.TrangThai + 1);
+        }
+        else if (action == "fail")
+        {
+            if (order.TrangThai != Enums.TrangThaiHoaDon.DangGiao)
+            {
+                return BadRequest(new { message = "Chỉ đơn hàng đang giao mới có thể đánh dấu giao thất bại." });
+            }
+
+            // Cộng lại tồn kho vì hàng đã về
+            var chiTietList = await _dbContext.HoaDonChiTiets
+                .Where(hdct => hdct.HoaDonID == order.HoaDonID)
+                .ToListAsync();
+
+            foreach (var item in chiTietList)
+            {
+                var ctsp = await _dbContext.ChiTietSanPhams
+                    .FirstOrDefaultAsync(ct => ct.ChiTietSanPhamID == item.ChiTietSanPhamID);
+                if (ctsp != null)
+                {
+                    ctsp.SoLuongTonKho += item.SoLuong;
+                }
+            }
+
+            order.TrangThai = Enums.TrangThaiHoaDon.GiaoHangThatBai;
+        }
+        else if (action == "reschedule")
+        {
+            if (order.TrangThai != Enums.TrangThaiHoaDon.DangGiao)
+            {
+                return BadRequest(new { message = "Chỉ đơn hàng đang giao mới có thể hẹn giao lại." });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.GhiChu))
+            {
+                order.GhiChu = request.GhiChu.Trim();
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return Ok(new { message = "Đã lưu ghi chú hẹn giao lại.", currentStatusKey = GetStatusKey(order.TrangThai), currentStatusLabel = GetStatusLabel(order.TrangThai) });
         }
         else if (action == "cancel")
         {
@@ -147,11 +205,26 @@ public sealed class AdminOrdersController : ControllerBase
             {
                 return BadRequest(new { message = "Đơn hàng đang giao, không thể hủy." });
             }
+
+            // Nếu đơn đã được xác nhận (1) hoặc đang chuẩn bị (2) thì cần trả lại tồn kho
+            if (order.TrangThai == Enums.TrangThaiHoaDon.DaXacNhan || order.TrangThai == Enums.TrangThaiHoaDon.DangChuanBi)
+            {
+                var chiTietList = await _dbContext.HoaDonChiTiets
+                    .Where(hdct => hdct.HoaDonID == order.HoaDonID)
+                    .ToListAsync();
+
+                foreach (var item in chiTietList)
+                {
+                    var ctsp = await _dbContext.ChiTietSanPhams
+                        .FirstOrDefaultAsync(ct => ct.ChiTietSanPhamID == item.ChiTietSanPhamID);
+                    if (ctsp != null)
+                    {
+                        ctsp.SoLuongTonKho += item.SoLuong;
+                    }
+                }
+            }
+
             order.TrangThai = Enums.TrangThaiHoaDon.DaHuy;
-        }
-        else
-        {
-            return BadRequest(new { message = "Hành động không hợp lệ." });
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -298,6 +371,8 @@ public sealed class AdminOrdersController : ControllerBase
             case "cancelled": orderStatus = Enums.TrangThaiHoaDon.DaHuy; return true;
             case "qr_pending": orderStatus = Enums.TrangThaiHoaDon.DangChoThanhToanQR; return true;
             default: orderStatus = Enums.TrangThaiHoaDon.ChoDuyet; return false;
+            case "delivery_failed": orderStatus = Enums.TrangThaiHoaDon.GiaoHangThatBai; return true;
+
         }
     }
 
@@ -313,6 +388,7 @@ public sealed class AdminOrdersController : ControllerBase
             Enums.TrangThaiHoaDon.DaHuy => "cancelled",
             Enums.TrangThaiHoaDon.DaDoiTra => "returned",
             Enums.TrangThaiHoaDon.DangChoThanhToanQR => "qr_pending",
+            Enums.TrangThaiHoaDon.GiaoHangThatBai => "delivery_failed",
             _ => "pending"
         };
     }
@@ -329,6 +405,7 @@ public sealed class AdminOrdersController : ControllerBase
             Enums.TrangThaiHoaDon.DaHuy => "Đã hủy",
             Enums.TrangThaiHoaDon.DaDoiTra => "Đã đổi trả",
             Enums.TrangThaiHoaDon.DangChoThanhToanQR => "Chờ thanh toán QR",
+            Enums.TrangThaiHoaDon.GiaoHangThatBai => "Giao hàng thất bại",
             _ => "Chờ xác nhận"
         };
     }
@@ -340,6 +417,7 @@ public sealed class UpdateStatusRequest
 {
     [Required(ErrorMessage = "Hành động xử lý là bắt buộc.")]
     public string Action { get; set; } = string.Empty;
+    public string? GhiChu { get; set; }
 }
 
 public sealed class AdminOrderSummaryResponse

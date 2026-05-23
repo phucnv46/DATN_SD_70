@@ -1,44 +1,181 @@
 ﻿@model DATN_70.Models.Entities.TaiKhoan
-
 @{
     ViewData["Title"] = "Đăng ký";
 }
 
-<div class="container mt-5">
+<div class="container mt-4 mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="card shadow-sm border-0 rounded-lg">
-                <div class="card-body p-5">
-                    <h3 class="text-center mb-4 fw-bold">Tạo Tài Khoản</h3>
-                    
-                    <form asp-action="Register" method="post">
-                        @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3 text-center"></div>
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="text-center mb-1 fw-bold">Tạo Tài Khoản</h3>
+                    <p class="text-center text-muted small mb-4">Vui lòng điền đầy đủ thông tin để đăng ký.</p>
 
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label text-muted">Email đăng nhập</label>
-                            <input asp-for="Email" type="email" class="form-control form-control-lg" placeholder="name@example.com" required />
-                            <span asp-validation-for="Email" class="text-danger fs-6"></span>
+                    <form asp-action="Register" method="post" id="registerForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="text-danger mb-3 small"></div>
+
+                        <!-- THÔNG TIN CƠ BẢN -->
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3">Thông tin tài khoản</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label small fw-medium">Email đăng nhập *</label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="name@example.com" required />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="MatKhau" class="form-label small fw-medium">Mật khẩu *</label>
+                                <input asp-for="MatKhau" type="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6" />
+                                <span asp-validation-for="MatKhau" class="text-danger small"></span>
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label asp-for="MatKhau" class="form-label text-muted">Mật khẩu</label>
-                            <input asp-for="MatKhau" type="password" class="form-control form-control-lg" placeholder="••••••••" required />
-                            <span asp-validation-for="MatKhau" class="text-danger fs-6"></span>
+                        <!-- THÔNG TIN CÁ NHÂN & ĐỊA CHỈ MẶC ĐỊNH -->
+                        <h6 class="fw-bold text-uppercase text-secondary small mb-3">Thông tin cá nhân & Địa chỉ mặc định</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium" for="FullName">Họ và tên *</label>
+                                <input type="text" class="form-control" id="FullName" name="FullName" placeholder="Nguyễn Văn A" required />
+                                <span class="text-danger small" id="errFullName"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium" for="Phone">Số điện thoại *</label>
+                                <input type="tel" class="form-control" id="Phone" name="Phone" placeholder="0912345678" required pattern="(0|\+84)\d{9}" title="Số điện thoại 10 chữ số, bắt đầu bằng 0 hoặc +84" />
+                                <span class="text-danger small" id="errPhone"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium" for="Province">Tỉnh / Thành phố *</label>
+                                <select class="form-select" id="Province" name="Province" required></select>
+                                <span class="text-danger small" id="errProvince"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium" for="District">Quận / Huyện *</label>
+                                <select class="form-select" id="District" name="District" required></select>
+                                <span class="text-danger small" id="errDistrict"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium" for="Ward">Phường / Xã *</label>
+                                <select class="form-select" id="Ward" name="Ward" required></select>
+                                <span class="text-danger small" id="errWard"></span>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium" for="Street">Địa chỉ chi tiết (Số nhà, tên đường) *</label>
+                                <input type="text" class="form-control" id="Street" name="Street" placeholder="Số 12, Ngõ 34, Phố Phùng Hưng..." required />
+                                <span class="text-danger small" id="errStreet"></span>
+                            </div>
                         </div>
 
                         <input type="hidden" asp-for="TaiKhoanID" value="@Guid.NewGuid().ToString()" />
                         <input type="hidden" asp-for="TrangThai" value="Hoạt động" />
                         <input type="hidden" asp-for="VaiTroID" value="R03" />
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">Đăng Ký</button>
+                        <button type="submit" class="btn btn-dark w-100 py-2 fw-bold mt-2">Đăng Ký</button>
                     </form>
 
                     <div class="mt-4 text-center">
-                        <p class="text-muted">Đã có tài khoản? <a href="/Account/Login" class="text-decoration-none fw-bold text-primary">Đăng nhập</a></p>
+                        <p class="text-muted small">Đã có tài khoản? <a href="/Account/Login" class="text-decoration-none fw-bold text-dark">Đăng nhập</a></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        let cachedProvinces = [];
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const provinceSelect = document.getElementById("Province");
+            const districtSelect = document.getElementById("District");
+            const wardSelect = document.getElementById("Ward");
+
+            fetch("https://provinces.open-api.vn/api/?depth=3")
+                .then(res => res.json())
+                .then(data => {
+                    cachedProvinces = data;
+                    provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+                    data.forEach(p => {
+                        provinceSelect.innerHTML += `<option value="${p.name}" data-code="${p.code}">${p.name}</option>`;
+                    });
+                }).catch(() => alert("Không tải được danh sách tỉnh thành."));
+
+            provinceSelect.addEventListener("change", function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const pCode = selectedOption.getAttribute("data-code");
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                if (!pCode) return;
+                const province = cachedProvinces.find(p => p.code == pCode);
+                if (province && province.districts) {
+                    province.districts.forEach(d => {
+                        districtSelect.innerHTML += `<option value="${d.name}" data-code="${d.code}">${d.name}</option>`;
+                    });
+                }
+            });
+
+            districtSelect.addEventListener("change", function() {
+                const pOption = provinceSelect.options[provinceSelect.selectedIndex];
+                const pCode = pOption ? pOption.getAttribute("data-code") : null;
+                const dOption = this.options[this.selectedIndex];
+                const dCode = dOption ? dOption.getAttribute("data-code") : null;
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                if (!pCode || !dCode) return;
+                const province = cachedProvinces.find(p => p.code == pCode);
+                if (province) {
+                    const district = province.districts.find(d => d.code == dCode);
+                    if (district && district.wards) {
+                        district.wards.forEach(w => {
+                            wardSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`;
+                        });
+                    }
+                }
+            });
+
+            // CLIENT VALIDATION
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                let valid = true;
+                const phone = document.getElementById('Phone').value.trim();
+                const phoneRegex = /^(0|\+84)\d{9}$/;
+                if (!phoneRegex.test(phone)) {
+                    document.getElementById('errPhone').textContent = 'Số điện thoại không hợp lệ (10 chữ số, bắt đầu 0 hoặc +84).';
+                    valid = false;
+                } else { document.getElementById('errPhone').textContent = ''; }
+
+                const province = document.getElementById('Province').value;
+                if (!province || province.startsWith('--')) {
+                    document.getElementById('errProvince').textContent = 'Vui lòng chọn Tỉnh/Thành phố.';
+                    valid = false;
+                } else { document.getElementById('errProvince').textContent = ''; }
+
+                const district = document.getElementById('District').value;
+                if (!district || district.startsWith('--')) {
+                    document.getElementById('errDistrict').textContent = 'Vui lòng chọn Quận/Huyện.';
+                    valid = false;
+                } else { document.getElementById('errDistrict').textContent = ''; }
+
+                const ward = document.getElementById('Ward').value;
+                if (!ward || ward.startsWith('--')) {
+                    document.getElementById('errWard').textContent = 'Vui lòng chọn Phường/Xã.';
+                    valid = false;
+                } else { document.getElementById('errWard').textContent = ''; }
+
+                const fullName = document.getElementById('FullName').value.trim();
+                if (!fullName) {
+                    document.getElementById('errFullName').textContent = 'Vui lòng nhập họ và tên.';
+                    valid = false;
+                } else { document.getElementById('errFullName').textContent = ''; }
+
+                const street = document.getElementById('Street').value.trim();
+                if (!street) {
+                    document.getElementById('errStreet').textContent = 'Vui lòng nhập địa chỉ chi tiết.';
+                    valid = false;
+                } else { document.getElementById('errStreet').textContent = ''; }
+
+                if (!valid) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

@@ -1,7 +1,6 @@
 ﻿@model DATN_70.Models.ViewModels.AccountAddressPageViewModel
 @{
     ViewData["Title"] = "Địa chỉ giao hàng";
-    bool isEditing = !string.IsNullOrWhiteSpace(Model.Form?.Id);
 }
 
 <div class="container my-5">
@@ -20,7 +19,6 @@
                 <a href="/Account/Password" class="list-group-item list-group-item-action">
                     <i class="bi bi-shield-lock me-2"></i> Đổi mật khẩu
                 </a>
-                </a>
                 <a href="/Account/Logout" class="list-group-item list-group-item-action text-danger border-top">
                     <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
                 </a>
@@ -34,14 +32,25 @@
                         <h4 class="fw-bold text-uppercase">Địa chỉ của tôi</h4>
                         <p class="text-muted small mb-0">Quản lý danh sách các địa chỉ nhận hàng của bạn.</p>
                     </div>
-                    @if (isEditing)
-                    {
-                        <a href="/Account/Addresses" class="btn btn-sm btn-outline-secondary rounded-pill">
-                            <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
-                        </a>
-                    }
+                    <button type="button" class="btn btn-dark btn-sm rounded-pill px-4" id="btnAddAddress">
+                        <i class="bi bi-plus-lg me-1"></i> Thêm địa chỉ mới
+                    </button>
                 </div>
-
+                @if (!ViewContext.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <strong>Có lỗi xảy ra:</strong>
+                        <ul>
+                            @foreach (var key in ViewContext.ModelState.Keys)
+                            {
+                                foreach (var error in ViewContext.ModelState[key].Errors)
+                                {
+                                    <li><b>@key</b>: @error.ErrorMessage</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                }
                 @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
                 {
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -50,123 +59,259 @@
                     </div>
                 }
 
-                <div class="row g-4">
-                    <div class="col-lg-5 order-lg-2">
-                        <div class="p-3 border rounded bg-light-soft">
-                            <h6 class="fw-bold text-uppercase mb-3">
-                                @(isEditing ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới")
-                            </h6>
-
-                            <form asp-controller="Account" asp-action="SaveAddress" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" asp-for="Form.Id" />
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-medium" asp-for="Form.RecipientName">Tên người nhận</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="Form.RecipientName" placeholder="Họ và tên" />
-                                    <span asp-validation-for="Form.RecipientName" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-medium" asp-for="Form.Phone">Số điện thoại</label>
-                                    <input type="tel" class="form-control form-control-sm" asp-for="Form.Phone" placeholder="Số điện thoại nhận hàng" />
-                                    <span asp-validation-for="Form.Phone" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-medium" asp-for="Form.Province">Tỉnh / Thành phố</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Province" placeholder="Ví dụ: Hà Nội" />
-                                    <span asp-validation-for="Form.Province" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-medium" asp-for="Form.District">Quận / Huyện</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="Form.District" placeholder="Ví dụ: Cầu Giấy" />
-                                    <span asp-validation-for="Form.District" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-2">
-                                    <label class="form-label small fw-medium" asp-for="Form.Ward">Phường / Xã</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Ward" placeholder="Ví dụ: Dịch Vọng" />
-                                    <span asp-validation-for="Form.Ward" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label small fw-medium" asp-for="Form.Street">Địa chỉ chi tiết (Số nhà, đường)</label>
-                                    <input type="text" class="form-control form-control-sm" asp-for="Form.Street" placeholder="Ví dụ: 144 Nam Kỳ Khởi Nghĩa" />
-                                    <span asp-validation-for="Form.Street" class="text-danger small"></span>
-                                </div>
-
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" asp-for="Form.IsDefault" />
-                                    <label class="form-check-label small" asp-for="Form.IsDefault">Đặt làm địa chỉ mặc định</label>
-                                </div>
-
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-dark btn-sm fw-medium">
-                                        @(isEditing ? "Cập nhật" : "Lưu địa chỉ")
-                                    </button>
-                                    @if (isEditing)
-                                    {
-                                        <a href="/Account/Addresses" class="btn btn-outline-secondary btn-sm">Hủy bỏ</a>
-                                    }
-                                </div>
-                            </form>
+                <div id="addressListContainer">
+                    @if (Model.Addresses == null || !Model.Addresses.Any())
+                    {
+                        <div class="text-center py-5 border rounded bg-light">
+                            <i class="bi bi-geo text-muted fs-2"></i>
+                            <p class="text-muted small mt-2 mb-0">Bạn chưa lưu địa chỉ nhận hàng nào.</p>
                         </div>
-                    </div>
-
-                    <div class="col-lg-7 order-lg-1">
-                        @if (Model.Addresses == null || !Model.Addresses.Any())
+                    }
+                    else
+                    {
+                        foreach (var address in Model.Addresses)
                         {
-                            <div class="text-center py-5 border rounded bg-light">
-                                <i class="bi bi-geo text-muted fs-2"></i>
-                                <p class="text-muted small mt-2 mb-0">Bạn chưa lưu địa chỉ nhận hàng nào.</p>
+                            <div class="p-3 border rounded mb-3 bg-white shadow-xs position-relative @(address.IsDefault ? "border-dark" : "")">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="fw-bold text-dark me-2">@address.RecipientName</span>
+                                        @if (address.IsDefault)
+                                        {
+                                            <span class="badge bg-dark-soft text-dark border small rounded-1 px-2 py-0.5">Mặc định</span>
+                                        }
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-secondary btn-edit-address"
+                                                data-id="@address.Id"
+                                                data-recipient="@address.RecipientName"
+                                                data-phone="@address.Phone"
+                                                data-street="@address.Street"
+                                                data-province="@address.Province"
+                                                data-district="@address.District"
+                                                data-ward="@address.Ward"
+                                                data-isdefault="@address.IsDefault.ToString().ToLower()">
+                                            Sửa
+                                        </button>
+
+                                        @if (!address.IsDefault)
+                                        {
+                                            <form asp-controller="Account" asp-action="DeleteAddress" asp-route-id="@address.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-danger small border-0 bg-transparent">Xóa</button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="text-secondary small mb-1"><i class="bi bi-telephone me-1"></i> Điện thoại: @address.Phone</div>
+                                <div class="text-secondary small"><i class="bi bi-geo-alt me-1"></i> Địa chỉ: @address.Street, @address.Ward, @address.District, @address.Province</div>
+
+                                @if (!address.IsDefault)
+                                {
+                                    <form asp-controller="Account" asp-action="SetDefaultAddress" asp-route-id="@address.Id" method="post" class="mt-2 pt-2 border-top">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-dark btn-xs rounded-1 py-1 px-2 small" style="font-size: 0.75rem;">
+                                            Đặt làm mặc định
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         }
-                        else
-                        {
-                            foreach (var address in Model.Addresses)
-                            {
-                                <div class="p-3 border rounded mb-3 bg-white shadow-xs position-relative @(address.IsDefault ? "border-dark" : "")">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div>
-                                            <span class="fw-bold text-dark me-2">@address.RecipientName</span>
-                                            @if (address.IsDefault)
-                                            {
-                                                <span class="badge bg-dark-soft text-dark border small rounded-1 px-2 py-0.5">Mặc định</span>
-                                            }
-                                        </div>
-                                        <div class="d-flex gap-2">
-                                            <a href="/Account/Addresses?editId=@address.Id" class="btn btn-link btn-sm text-decoration-none p-0 text-secondary small">Sửa</a>
-
-                                            @if (!address.IsDefault)
-                                            {
-                                                <form asp-controller="Account" asp-action="DeleteAddress" asp-route-id="@address.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');" class="d-inline">
-                                                    @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0 text-danger small border-0 bg-transparent">Xóa</button>
-                                                </form>
-                                            }
-                                        </div>
-                                    </div>
-                                    <div class="text-secondary small mb-1"><i class="bi bi-telephone me-1"></i> Điện thoại: @address.Phone</div>
-                                    <div class="text-secondary small"><i class="bi bi-geo-alt me-1"></i> Địa chỉ: @address.Street, @address.Ward, @address.District, @address.Province</div>
-
-                                    @if (!address.IsDefault)
-                                    {
-                                        <form asp-controller="Account" asp-action="SetDefaultAddress" asp-route-id="@address.Id" method="post" class="mt-2 pt-2 border-top">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-outline-dark btn-xs rounded-1 py-1 px-2 small" style="font-size: 0.75rem;">
-                                                Đặt làm mặc định
-                                            </button>
-                                        </form>
-                                    }
-                                </div>
-                            }
-                        }
-                    </div>
+                    }
                 </div>
-
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Thêm/Sửa địa chỉ -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="addressModalTitle">Thêm địa chỉ mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-controller="Account" asp-action="SaveAddress" method="post" id="modalAddressForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="modalFormId" name="Form.Id" />
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium" for="modalRecipient">Tên người nhận *</label>
+                        <input type="text" class="form-control" id="modalRecipient" name="Form.RecipientName" placeholder="Họ và tên" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium" for="modalPhone">Số điện thoại *</label>
+                        <input type="tel" class="form-control" id="modalPhone" name="Form.Phone" placeholder="0912345678" required pattern="(0|\+84)\d{9}" />
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium" for="modalProvince">Tỉnh / TP *</label>
+                            <select class="form-select" id="modalProvince" name="Form.Province" required></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium" for="modalDistrict">Quận / Huyện *</label>
+                            <select class="form-select" id="modalDistrict" name="Form.District" required></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium" for="modalWard">Phường / Xã *</label>
+                            <select class="form-select" id="modalWard" name="Form.Ward" required></select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium" for="modalStreet">Địa chỉ chi tiết *</label>
+                        <input type="text" class="form-control" id="modalStreet" name="Form.Street" placeholder="Số nhà, tên đường..." required />
+                    </div>
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" id="modalIsDefault" name="Form.IsDefault" value="true" />
+                        <label class="form-check-label small" for="modalIsDefault">Đặt làm mặc định</label>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-dark btn-sm rounded-pill px-4 fw-medium">Lưu địa chỉ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let cachedProvinces = [];
+        let editingAddressId = '';
+
+        cachedProvinces = @Html.Raw(ViewBag.ProvincesJson ?? "[]") || [];
+
+        function populateProvinceSelect(provinceSelect, selectedProvince = '') {
+            provinceSelect.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+            cachedProvinces.forEach(p => {
+                const selected = p.name === selectedProvince ? 'selected' : '';
+                provinceSelect.innerHTML += `<option value="${p.name}" data-code="${p.code}" ${selected}>${p.name}</option>`;
+            });
+        }
+
+        function populateDistrictSelect(districtSelect, provinceCode, selectedDistrict = '') {
+            districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+            if (!provinceCode) return;
+            const province = cachedProvinces.find(p => p.code == provinceCode);
+            if (province && province.districts) {
+                province.districts.forEach(d => {
+                    const selected = d.name === selectedDistrict ? 'selected' : '';
+                    districtSelect.innerHTML += `<option value="${d.name}" data-code="${d.code}" ${selected}>${d.name}</option>`;
+                });
+            }
+        }
+
+        function populateWardSelect(wardSelect, provinceCode, districtCode, selectedWard = '') {
+            wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            if (!provinceCode || !districtCode) return;
+            const province = cachedProvinces.find(p => p.code == provinceCode);
+            if (province) {
+                const district = province.districts.find(d => d.code == districtCode);
+                if (district && district.wards) {
+                    district.wards.forEach(w => {
+                        const selected = w.name === selectedWard ? 'selected' : '';
+                        wardSelect.innerHTML += `<option value="${w.name}" ${selected}>${w.name}</option>`;
+                    });
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const modalElement = document.getElementById('addressModal');
+            if (!modalElement) return;
+            const modal = new bootstrap.Modal(modalElement);
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                if (document.activeElement && document.activeElement !== document.body) {
+                    document.activeElement.blur();
+                }
+            });
+
+            const modalTitle = document.getElementById('addressModalTitle');
+            const modalForm = document.getElementById('modalAddressForm');
+            const formId = document.getElementById('modalFormId');
+            const recipient = document.getElementById('modalRecipient');
+            const phone = document.getElementById('modalPhone');
+            const street = document.getElementById('modalStreet');
+            const isDefault = document.getElementById('modalIsDefault');
+            const provinceSelect = document.getElementById('modalProvince');
+            const districtSelect = document.getElementById('modalDistrict');
+            const wardSelect = document.getElementById('modalWard');
+
+            // Sự kiện thay đổi tỉnh/huyện
+            provinceSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const pCode = selectedOption.getAttribute('data-code');
+                populateDistrictSelect(districtSelect, pCode);
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+            });
+
+            districtSelect.addEventListener('change', function() {
+                const pOption = provinceSelect.options[provinceSelect.selectedIndex];
+                const pCode = pOption ? pOption.getAttribute('data-code') : null;
+                const dOption = this.options[this.selectedIndex];
+                const dCode = dOption ? dOption.getAttribute('data-code') : null;
+                populateWardSelect(wardSelect, pCode, dCode);
+            });
+
+            // Tự động mở modal nếu có lỗi
+            @if (ViewBag.ShowAddressModal != null && (bool)ViewBag.ShowAddressModal)
+            {
+                    <text>
+                    if (formId && formId.value !== '') {
+                        modalTitle.textContent = 'Cập nhật địa chỉ';
+                    } else {
+                        modalTitle.textContent = 'Thêm địa chỉ mới';
+                    }
+                    modal.show();
+                    populateProvinceSelect(provinceSelect, '@Model.Form?.Province');
+                    const pCode = provinceSelect.options[provinceSelect.selectedIndex]?.getAttribute('data-code');
+                    populateDistrictSelect(districtSelect, pCode, '@Model.Form?.District');
+                    setTimeout(() => {
+                        const dCode = districtSelect.options[districtSelect.selectedIndex]?.getAttribute('data-code');
+                        populateWardSelect(wardSelect, pCode, dCode, '@Model.Form?.Ward');
+                    }, 100);
+                    </text>
+            }
+
+            // Mở modal thêm mới
+            document.getElementById('btnAddAddress').addEventListener('click', function() {
+                editingAddressId = '';
+                modalTitle.textContent = 'Thêm địa chỉ mới';
+                formId.value = '';
+                recipient.value = '';
+                phone.value = '';
+                street.value = '';
+                isDefault.checked = false;
+                populateProvinceSelect(provinceSelect);
+                districtSelect.innerHTML = '<option value="">-- Chọn Quận/Huyện --</option>';
+                wardSelect.innerHTML = '<option value="">-- Chọn Phường/Xã --</option>';
+                modal.show();
+            });
+
+            // Mở modal sửa
+            document.querySelectorAll('.btn-edit-address').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const data = this.dataset;
+                    editingAddressId = data.id;
+                    modalTitle.textContent = 'Cập nhật địa chỉ';
+                    formId.value = data.id;
+                    recipient.value = data.recipient;
+                    phone.value = data.phone;
+                    street.value = data.street;
+                    isDefault.checked = data.isdefault === 'true';
+
+                    populateProvinceSelect(provinceSelect, data.province);
+                    const pCode = provinceSelect.options[provinceSelect.selectedIndex]?.getAttribute('data-code');
+                    populateDistrictSelect(districtSelect, pCode, data.district);
+                    setTimeout(() => {
+                        const dCode = districtSelect.options[districtSelect.selectedIndex]?.getAttribute('data-code');
+                        populateWardSelect(wardSelect, pCode, dCode, data.ward);
+                    }, 100);
+
+                    modal.show();
+                });
+            });
+        });
+    </script>
+}

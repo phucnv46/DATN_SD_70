@@ -4,16 +4,21 @@ using DATN_70.Models.Enums;
 using DATN_70.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace DATN_70.Controllers;
 
 public class AccountController : Controller
 {
+
     private readonly AppDbContext _dbContext;
 
-    public AccountController(AppDbContext dbContext)
+    private readonly IMemoryCache _cache;
+
+    public AccountController(AppDbContext dbContext, IMemoryCache cache)
     {
         _dbContext = dbContext;
+        _cache = cache;
     }
 
     [HttpGet]
@@ -30,36 +35,85 @@ public class AccountController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(TaiKhoan model)
+    public async Task<IActionResult> Register(TaiKhoan model, string FullName, string Phone, string Province, string District, string Ward, string Street)
     {
+        ModelState.Remove("VaiTro");
+        ModelState.Remove("GioHang");
+        ModelState.Remove("KhachHang");
+        ModelState.Remove("NhanVien");
+        // 1. Kiểm tra ModelState cho TaiKhoan
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
+        // 2. Kiểm tra các trường bắt buộc mới
+        if (string.IsNullOrWhiteSpace(FullName))
+            ModelState.AddModelError("FullName", "Vui lòng nhập họ và tên.");
+        if (string.IsNullOrWhiteSpace(Phone))
+            ModelState.AddModelError("Phone", "Vui lòng nhập số điện thoại.");
+        else if (!System.Text.RegularExpressions.Regex.IsMatch(Phone.Trim(), @"^(0|\+84)\d{9}$"))
+            ModelState.AddModelError("Phone", "Số điện thoại không đúng định dạng (10 chữ số, bắt đầu 0 hoặc +84).");
+
+        if (string.IsNullOrWhiteSpace(Province) || Province.StartsWith("--"))
+            ModelState.AddModelError("Province", "Vui lòng chọn Tỉnh/Thành phố.");
+        if (string.IsNullOrWhiteSpace(District) || District.StartsWith("--"))
+            ModelState.AddModelError("District", "Vui lòng chọn Quận/Huyện.");
+        if (string.IsNullOrWhiteSpace(Ward) || Ward.StartsWith("--"))
+            ModelState.AddModelError("Ward", "Vui lòng chọn Phường/Xã.");
+        if (string.IsNullOrWhiteSpace(Street))
+            ModelState.AddModelError("Street", "Vui lòng nhập địa chỉ chi tiết.");
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        // 3. Kiểm tra email trùng
         if (await _dbContext.TaiKhoans.AnyAsync(item => item.Email == model.Email))
         {
             ModelState.AddModelError(nameof(TaiKhoan.Email), "Email này đã được sử dụng.");
             return View(model);
         }
+        // Kiểm tra số điện thoại đã được sử dụng chưa
+        var normalizedPhone = NormalizePhoneForStorage(Phone);
+        if (!string.IsNullOrWhiteSpace(normalizedPhone) && await _dbContext.KhachHangs.AnyAsync(item => item.SoDienThoai == normalizedPhone))
+        {
+            ModelState.AddModelError("Phone", "Số điện thoại này đã được sử dụng.");
+            return View(model);
+        }
 
+        // 4. Lưu tài khoản và khách hàng
         model.TaiKhoanID = string.IsNullOrWhiteSpace(model.TaiKhoanID) ? Guid.NewGuid().ToString() : model.TaiKhoanID;
-        model.TrangThai = string.IsNullOrWhiteSpace(model.TrangThai) ? "Hoạt động" : model.TrangThai;
-        model.VaiTroID = string.IsNullOrWhiteSpace(model.VaiTroID) ? "R03" : model.VaiTroID;
+        model.TrangThai = "Hoạt động";
+        model.VaiTroID = "R03";
 
         var customer = new KhachHang
         {
             KhachHangID = GenerateId("KH", 20),
-            Ten = model.Email.Split('@')[0],
+            Ten = FullName.Trim(),
             Email = model.Email,
-            SoDienThoai = "0000000000",
+            SoDienThoai = NormalizePhoneForStorage(Phone),
             GioiTinh = Enums.GioiTinh.Khac,
-            DiaChi = string.Empty,
+            DiaChi = Street.Trim(),
             TaiKhoanID = model.TaiKhoanID
         };
 
         _dbContext.TaiKhoans.Add(model);
         _dbContext.KhachHangs.Add(customer);
+        await _dbContext.SaveChangesAsync();
+
+        // 5. Lưu địa chỉ mặc định
+        var diaChi = new DiaChi
+        {
+            DiaChiID = Guid.NewGuid().ToString(),
+            KhachHangID = customer.KhachHangID,
+            TenNguoiNhan = FullName.Trim(),
+            SoDienThoaiNhan = NormalizePhoneForStorage(Phone),
+            TinhThanh = Province.Trim(),
+            QuanHuyen = District.Trim(),
+            PhuongXa = AddressSerializer.Pack(Ward.Trim(), Street.Trim()),
+            LaMacDinh = true
+        };
+        _dbContext.DiaChis.Add(diaChi);
         await _dbContext.SaveChangesAsync();
 
         return RedirectToAction(nameof(Login));
@@ -145,21 +199,13 @@ public class AccountController : Controller
     public async Task<IActionResult> Profile()
     {
         var user = await GetCurrentAccountAsync();
-        if (user is null)
-        {
-            return RedirectToAction(nameof(Login));
-        }
+        if (user is null) return RedirectToAction(nameof(Login));
 
         var defaultAddress = await _dbContext.DiaChis
             .AsNoTracking()
             .Where(item => item.KhachHangID == user.KhachHang!.KhachHangID)
             .OrderByDescending(item => item.LaMacDinh)
-            .Select(item => new
-            {
-                item.TinhThanh,
-                item.QuanHuyen,
-                item.PhuongXa
-            })
+            .Select(item => new { item.TinhThanh, item.QuanHuyen, item.PhuongXa })
             .FirstOrDefaultAsync();
 
         var model = new AccountProfileViewModel
@@ -173,57 +219,104 @@ public class AccountController : Controller
                 ? "Chưa có địa chỉ mặc định."
                 : string.Join(", ", new[]
                 {
-                    AddressSerializer.ExtractStreet(defaultAddress.PhuongXa),
-                    AddressSerializer.ExtractWard(defaultAddress.PhuongXa),
-                    defaultAddress.QuanHuyen,
-                    defaultAddress.TinhThanh
+                AddressSerializer.ExtractStreet(defaultAddress.PhuongXa),
+                AddressSerializer.ExtractWard(defaultAddress.PhuongXa),
+                defaultAddress.QuanHuyen,
+                defaultAddress.TinhThanh
                 }.Where(part => !string.IsNullOrWhiteSpace(part)))
         };
 
-        if (TempData["ProfileStatus"] is string statusMessage)
-        {
-            model.StatusMessage = statusMessage;
-        }
+        if (TempData["ProfileStatus"] is string msg) model.StatusMessage = msg;
 
         return View(model);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Profile(AccountProfileViewModel model)
+    public async Task<IActionResult> SaveAddress(AddressFormViewModel form)
     {
         var user = await GetCurrentAccountAsync();
-        if (user is null)
+        if (user is null) return RedirectToAction(nameof(Login));
+
+        var customer = user.KhachHang!;
+        var normalizedPhone = NormalizePhoneForStorage(form.Phone);
+
+        // Lấy TaiKhoanID của customer hiện tại
+        var currentTaiKhoanId = user.TaiKhoanID;
+        // Tìm xem có KhachHang nào khác tài khoản này đang dùng số đó không
+        var existingCustomer = await _dbContext.KhachHangs
+            .FirstOrDefaultAsync(c => c.SoDienThoai == normalizedPhone && c.TaiKhoanID != currentTaiKhoanId);
+        if (existingCustomer != null)
         {
-            return RedirectToAction(nameof(Login));
+            ModelState.AddModelError("Form.Phone", $"Số điện thoại này đã được sử dụng bởi tài khoản khác. (ID tài khoản xung đột: {existingCustomer.TaiKhoanID}, ID hiện tại: {currentTaiKhoanId}, SĐT: {normalizedPhone})");
         }
 
         if (!ModelState.IsValid)
         {
-            model.DefaultAddressText = await GetDefaultAddressTextAsync(user.KhachHang!.KhachHangID);
-            return View(model);
+            ViewBag.ShowAddressModal = true;
+            var invalidModel = new AccountAddressPageViewModel
+            {
+                Form = form,
+                Addresses = await BuildAddressItemsAsync(customer.KhachHangID)
+            };
+            return View("Addresses", invalidModel);
         }
 
-        user.Email = model.Email.Trim();
-        user.KhachHang!.Ten = model.FullName.Trim();
-        user.KhachHang.Email = model.Email.Trim();
-        user.KhachHang.SoDienThoai = NormalizePhoneForStorage(model.Phone);
+        try
+        {
+            var address = string.IsNullOrWhiteSpace(form.Id)
+                ? new DiaChi
+                {
+                    DiaChiID = Guid.NewGuid().ToString(),
+                    KhachHangID = customer.KhachHangID
+                }
+                : await _dbContext.DiaChis.FirstOrDefaultAsync(item => item.DiaChiID == form.Id && item.KhachHangID == customer.KhachHangID);
 
-        await _dbContext.SaveChangesAsync();
+            if (address is null) return NotFound();
 
-        HttpContext.Session.SetString("UserEmail", user.Email);
-        TempData["ProfileStatus"] = "Thông tin tài khoản đã được cập nhật.";
-        return RedirectToAction(nameof(Profile));
+            if (string.IsNullOrWhiteSpace(form.Id))
+                _dbContext.DiaChis.Add(address);
+
+            address.TenNguoiNhan = form.RecipientName.Trim();
+            address.SoDienThoaiNhan = normalizedPhone;
+            address.TinhThanh = form.Province.Trim();
+            address.QuanHuyen = form.District.Trim();
+            address.PhuongXa = AddressSerializer.Pack(form.Ward.Trim(), form.Street.Trim());
+            address.LaMacDinh = form.IsDefault;
+
+            if (form.IsDefault)
+                await ClearDefaultAddressesAsync(customer.KhachHangID, address.DiaChiID);
+
+            customer.DiaChi = string.Join(", ", new[] { form.Street.Trim(), form.Ward.Trim(), form.District.Trim(), form.Province.Trim() });
+            customer.SoDienThoai = normalizedPhone;
+            if (!string.IsNullOrWhiteSpace(form.RecipientName))
+                customer.Ten = form.RecipientName.Trim();
+
+            await _dbContext.SaveChangesAsync();
+
+            TempData["AddressStatus"] = string.IsNullOrWhiteSpace(form.Id)
+                ? "Địa chỉ mới đã được thêm."
+                : "Địa chỉ đã được cập nhật.";
+            return RedirectToAction(nameof(Addresses));
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", "Lỗi khi lưu địa chỉ: " + ex.Message);
+            ViewBag.ShowAddressModal = true;
+            var errorModel = new AccountAddressPageViewModel
+            {
+                Form = form,
+                Addresses = await BuildAddressItemsAsync(customer.KhachHangID)
+            };
+            return View("Addresses", errorModel);
+        }
     }
 
     [HttpGet]
     public async Task<IActionResult> Addresses(string? editId = null)
     {
         var user = await GetCurrentAccountAsync();
-        if (user is null)
-        {
-            return RedirectToAction(nameof(Login));
-        }
+        if (user is null) return RedirectToAction(nameof(Login));
 
         var addresses = await BuildAddressItemsAsync(user.KhachHang!.KhachHangID);
         var editing = addresses.FirstOrDefault(item => item.Id == editId);
@@ -246,6 +339,18 @@ public class AccountController : Controller
                 }
         };
 
+        // Lấy dữ liệu tỉnh thành từ cache hoặc gọi API
+        string provincesJson = await _cache.GetOrCreateAsync("ProvincesData", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24); // Cache 24 giờ
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetStringAsync("https://provinces.open-api.vn/api/?depth=3");
+            var provincesArray = System.Text.Json.JsonSerializer.Deserialize<object>(response);
+            return System.Text.Json.JsonSerializer.Serialize(provincesArray);
+        });
+
+        ViewBag.ProvincesJson = provincesJson;
+
         if (TempData["AddressStatus"] is string statusMessage)
         {
             model.StatusMessage = statusMessage;
@@ -254,72 +359,6 @@ public class AccountController : Controller
         return View(model);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SaveAddress(AddressFormViewModel form)
-    {
-        var user = await GetCurrentAccountAsync();
-        if (user is null)
-        {
-            return RedirectToAction(nameof(Login));
-        }
-
-        if (!ModelState.IsValid)
-        {
-            var invalidModel = new AccountAddressPageViewModel
-            {
-                Form = form,
-                Addresses = await BuildAddressItemsAsync(user.KhachHang!.KhachHangID)
-            };
-            return View("Addresses", invalidModel);
-        }
-
-        var customer = user.KhachHang!;
-        var normalizedPhone = NormalizePhoneForStorage(form.Phone);
-        var address = string.IsNullOrWhiteSpace(form.Id)
-            ? new DiaChi
-            {
-                DiaChiID = Guid.NewGuid().ToString(),
-                KhachHangID = customer.KhachHangID
-            }
-            : await _dbContext.DiaChis.FirstOrDefaultAsync(item => item.DiaChiID == form.Id && item.KhachHangID == customer.KhachHangID);
-
-        if (address is null)
-        {
-            return NotFound();
-        }
-
-        if (string.IsNullOrWhiteSpace(form.Id))
-        {
-            _dbContext.DiaChis.Add(address);
-        }
-
-        address.TenNguoiNhan = form.RecipientName.Trim();
-        address.SoDienThoaiNhan = normalizedPhone;
-        address.TinhThanh = form.Province.Trim();
-        address.QuanHuyen = form.District.Trim();
-        address.PhuongXa = AddressSerializer.Pack(form.Ward.Trim(), form.Street.Trim());
-        address.LaMacDinh = form.IsDefault;
-
-        if (form.IsDefault)
-        {
-            await ClearDefaultAddressesAsync(customer.KhachHangID, address.DiaChiID);
-        }
-
-        customer.DiaChi = string.Join(", ", new[] { form.Street.Trim(), form.Ward.Trim(), form.District.Trim(), form.Province.Trim() });
-        customer.SoDienThoai = normalizedPhone;
-        if (!string.IsNullOrWhiteSpace(form.RecipientName))
-        {
-            customer.Ten = form.RecipientName.Trim();
-        }
-
-        await _dbContext.SaveChangesAsync();
-
-        TempData["AddressStatus"] = string.IsNullOrWhiteSpace(form.Id)
-            ? "Địa chỉ mới đã được thêm."
-            : "Địa chỉ đã được cập nhật.";
-        return RedirectToAction(nameof(Addresses));
-    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -526,8 +565,9 @@ public class AccountController : Controller
         if (order.TrangThai < Enums.TrangThaiHoaDon.DangGiao || order.TrangThai == Enums.TrangThaiHoaDon.DangChoThanhToanQR)
         {
             // *** PHẦN XỬ LÝ HOÀN TRẢ TỒN KHO MỚI THÊM VÀO ***
-            // Chỉ cộng lại tồn kho cho đơn hàng đã từng bị trừ (COD hoặc QR đã thanh toán)
-            if (order.TrangThai != Enums.TrangThaiHoaDon.DangChoThanhToanQR) // Loại trừ đơn QR chưa thanh toán (trạng thái 7)
+            
+            // Chỉ cộng lại tồn kho cho đơn hàng đã được admin xác nhận (đã trừ kho trước đó)
+            if (order.TrangThai == Enums.TrangThaiHoaDon.DaXacNhan || order.TrangThai == Enums.TrangThaiHoaDon.DangChuanBi)
             {
                 foreach (var detail in order.HoaDonChiTiets)
                 {
@@ -856,6 +896,7 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.DaHuy => "cancelled",
             (Enums.TrangThaiHoaDon)6 => "returned",
             (Enums.TrangThaiHoaDon)7 => "qr_pending",
+            (Enums.TrangThaiHoaDon)8 => "delivery_failed",
             _ => "pending"
         };
     }
@@ -872,6 +913,7 @@ public class AccountController : Controller
             Enums.TrangThaiHoaDon.DaHuy => "Đã hủy",
             (Enums.TrangThaiHoaDon)6 => "Đã đổi trả",
             (Enums.TrangThaiHoaDon)7 => "Chờ thanh toán QR",
+            (Enums.TrangThaiHoaDon)8 => "Giao hàng thất bại",
             _ => "Chờ xác nhận"
         };
     }

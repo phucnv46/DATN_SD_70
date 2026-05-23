@@ -219,10 +219,7 @@ public sealed class StoreRepository : IStoreRepository
             foreach (var detail in orderDetails)
             {
                 await InsertOrderDetailAsync(connection, transaction, orderId, detail, cancellationToken);
-                if (request.PaymentMethod != "QR")
-                {
-                    await UpdateStockAsync(connection, transaction, detail.ProductDetailId, detail.Quantity, cancellationToken);
-                }
+                
             }
 
             await transaction.CommitAsync(cancellationToken);
