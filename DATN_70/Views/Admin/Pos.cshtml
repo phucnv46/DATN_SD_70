@@ -1,5 +1,5 @@
 ﻿@{
-    Layout = null; // Khóa hoàn toàn layout mặc định để chiếm trọn vẹn không gian hiển thị 100% màn hình quầy
+    Layout = null;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -9,12 +9,11 @@
     <title>Hệ Thống Bán Hàng Tại Quầy - POS V1.0</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" />
-
     <style>
         body {
             background-color: #f4f6f9;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden; /* Khóa cuộn trang tổng để chia khung cuộn độc lập */
+            overflow: hidden;
             height: 100vh;
         }
 
@@ -55,7 +54,7 @@
 
             .product-card:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
                 border-color: #cbd5e1;
             }
 
@@ -71,10 +70,23 @@
             width: 100%;
             max-height: 200px;
             overflow-y: auto;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
 
-        /* 🖨️ ĐỊNH DẠNG CSS PHỤC VỤ IN HÓA ĐƠN NHIỆT ẢO KHỔ K80 (80mm) */
+        .voucher-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+        }
+
+        .voucher-item {
+            border-bottom: 1px solid #eee;
+        }
+
+            .voucher-item:last-child {
+                border-bottom: none;
+            }
+
         @@media print {
             body * {
                 visibility: hidden;
@@ -95,35 +107,17 @@
                 background: #fff;
                 padding: 2mm;
             }
-
-            .text-center {
-                text-align: center;
-            }
-
-            .text-end {
-                text-align: right;
-            }
-
-            .border-dashed {
-                border-top: 1px dashed #000;
-                margin: 5px 0;
-            }
         }
     </style>
 </head>
 <body>
-
+    <!-- Header, Sidebar, Checkout panel giữ nguyên như file trước đó -->
     <div class="pos-header d-flex justify-content-between align-items-center px-3 shadow-sm">
         <div>
-            <a href="/Admin/Orders" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-medium" onclick="return confirm('Xác nhận thoát không gian bán hàng để trở về Bảng điều khiển?')">
-                <i class="bi bi-arrow-left-circle me-1"></i> Trở về điều khiển
-            </a>
+            <a href="/Admin/Orders" class="btn btn-sm btn-outline-light rounded-pill px-3 fw-medium" onclick="return confirm('Xác nhận thoát không gian bán hàng?')"><i class="bi bi-arrow-left-circle me-1"></i> Trở về điều khiển</a>
             <span class="ms-3 border-start border-secondary ps-3 text-warning fw-bold small"><i class="bi bi-cpu-fill me-1"></i> PHÂN HỆ THU NGÂN POS V1.0</span>
         </div>
-
-        <div class="d-flex gap-1" id="posTabsHeaders">
-        </div>
-
+        <div class="d-flex gap-1" id="posTabsHeaders"></div>
         <div class="d-flex align-items-center gap-3 text-light small">
             <div><i class="bi bi-person-badge me-1"></i> Thu ngân: <strong id="lblCashierName">NV_TEMP_01</strong></div>
             <div class="border-start border-secondary ps-3"><i class="bi bi-clock me-1"></i> <span id="lblLiveClock">00:00:00</span></div>
@@ -132,7 +126,6 @@
 
     <div class="container-fluid pos-workspace">
         <div class="row h-100">
-
             <div class="col-md-7 col-lg-8 p-3 product-sidebar">
                 <div class="row g-2 mb-3 align-items-center">
                     <div class="col-md-6 position-relative">
@@ -145,32 +138,26 @@
                         <span class="badge bg-secondary px-3 py-2 rounded-pill small"><i class="bi bi-qr-code-scan me-1"></i> Chế độ máy quét mã vạch Đang bật</span>
                     </div>
                 </div>
-
-                <div class="row g-3" id="posProductGrid">
-                </div>
+                <div class="row g-3" id="posProductGrid"></div>
             </div>
 
             <div class="col-md-5 col-lg-4 p-0 checkout-panel shadow-sm">
-
                 <div class="p-3 border-bottom bg-light">
                     <label class="form-label small fw-bold text-secondary mb-1"><i class="bi bi-person-fill me-1"></i> KHÁCH HÀNG MUA TẠI QUẦY</label>
                     <div class="input-group position-relative">
-                        <input type="text" class="form-control form-control-sm shadow-none" id="txtCustomerSearch" placeholder="Nhập Tên hoặc SĐT để tìm khách quen..." autocomplete="off" />
-                        <button class="btn btn-sm btn-dark px-3" type="button" data-bs-toggle="modal" data-bs-target="#modalQuickAddCustomer" title="Thêm nhanh khách hàng mới">
-                            <i class="bi bi-person-plus-fill"></i> Thêm nhanh
-                        </button>
+                        <input type="text" class="form-control form-control-sm shadow-none" id="txtCustomerSearch" placeholder="Nhập Tên hoặc SĐT..." autocomplete="off" />
+                        <button class="btn btn-sm btn-dark px-3" type="button" data-bs-toggle="modal" data-bs-target="#modalQuickAddCustomer" title="Thêm nhanh khách hàng mới"><i class="bi bi-person-plus-fill"></i> Thêm nhanh</button>
                         <div class="list-group search-results-dropdown d-none" id="customerSearchResults"></div>
                     </div>
                     <div id="selectedCustomerBadge" class="mt-2 small text-primary fw-medium d-none">
                         <i class="bi bi-check2-circle"></i> Đang chọn: <span id="lblSelectedCustomer">Khách lẻ</span>
-                        <button class="btn btn-xs p-0 text-danger ms-2 border-0 bg-transparent" id="btnRemoveSelectedCustomer" title="Bỏ chọn khánh hàng"><i class="bi bi-x-circle-fill"></i></button>
+                        <button class="btn btn-xs p-0 text-danger ms-2 border-0 bg-transparent" id="btnRemoveSelectedCustomer" title="Bỏ chọn khách hàng"><i class="bi bi-x-circle-fill"></i></button>
                     </div>
                 </div>
 
                 <div class="cart-table-wrapper p-2">
                     <table class="table table-sm align-middle small table-hover mb-0">
-                        <tbody id="cartItemsBody">
-                        </tbody>
+                        <tbody id="cartItemsBody"></tbody>
                     </table>
                 </div>
 
@@ -180,15 +167,20 @@
                         <span class="fw-medium text-dark" id="lblTotalCartPrice">0 đ</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 small text-secondary">
-                        <span>Thuế giá trị gia tăng (VAT):</span>
+                        <span>Thuế VAT:</span>
                         <span class="fw-medium text-dark" id="lblTotalVatPrice">0 đ</span>
                     </div>
 
-                    <div class="input-group input-group-sm mb-3">
-                        <span class="input-group-text bg-white text-muted"><i class="bi bi-ticket-perforated"></i></span>
-                        <input type="text" class="form-control shadow-none" id="txtVoucherCode" placeholder="Nhập mã ưu đãi giảm giá..." />
-                        <button class="btn btn-outline-dark" type="button" id="btnApplyVoucher">Áp dụng</button>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-secondary"><i class="bi bi-ticket-perforated me-1"></i>Ưu đãi khả dụng</span>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-2" id="btnRefreshVouchers" title="Làm mới danh sách voucher"><i class="bi bi-arrow-repeat"></i></button>
+                        </div>
+                        <div class="voucher-list" id="voucherSection">
+                            <div class="text-muted small text-center py-2">Chưa có sản phẩm trong giỏ</div>
+                        </div>
                     </div>
+
                     <div class="d-flex justify-content-between mb-2 small text-secondary d-none" id="boxDiscount">
                         <span>Chiết khấu Voucher:</span>
                         <span class="fw-bold text-success" id="lblVoucherDiscount">-0 đ</span>
@@ -224,17 +216,17 @@
                         <i class="bi bi-printer-fill me-2"></i> Xác nhận thanh toán & In hóa đơn
                     </button>
                 </div>
-
             </div>
         </div>
     </div>
 
+    <!-- Modal Thêm nhanh khách hàng -->
     <div class="modal fade" id="modalQuickAddCustomer" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title small fw-bold"><i class="bi bi-person-plus-fill me-2"></i>THÊM NHANH KHÁCH HÀNG MỚI</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-toggle="modal" data-bs-target="#modalQuickAddCustomer"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
@@ -253,6 +245,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal QR Code -->
     <div class="modal fade" id="modalQRCode" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content border-0 shadow-lg">
@@ -270,11 +264,14 @@
                         <button type="button" class="btn btn-success btn-sm px-4 rounded-pill fw-bold" id="btnConfirmQRPaid">
                             <i class="bi bi-check-circle-fill me-1"></i> Đã thu tiền & In Hóa Đơn
                         </button>
+                        <button type="button" class="btn btn-danger btn-sm px-3 rounded-pill me-1" id="btnCancelQRPayment">Hủy đơn hàng</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Template In hóa đơn -->
     <div id="invoice-print-template" class="d-none">
         <div class="text-center">
             <h4 style="margin: 0; font-weight: bold; text-transform: uppercase;">WINTER FASHION SHOP</h4>
@@ -318,124 +315,79 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // 1. KHỞI TẠO CẤU TRÚC MẠNG TAB ĐỘNG (BẮT ĐẦU BẰNG 1 TAB DUY NHẤT)
+        // ==================== CẤU TRÚC DỮ LIỆU ====================
         let posTabs = [];
-        let activeTabIdx = 0; // Chỉ mục tab đang làm việc
-        let localProductsCache = []; // Bộ nhớ cache sản phẩm
+        let activeTabIdx = 0;
+        let localProductsCache = [];
+        let currentVoucherData = [];
 
-        // Hàm tạo một đối tượng cấu trúc tab hóa đơn rỗng mới
         function createNewTabObject(name) {
             return {
                 tabName: name,
                 customerId: 'KH000000',
                 customerName: 'Khách lẻ',
                 customerPhone: '0000000000',
-                items: [], // Giỏ hàng chi tiết
-                voucherId: '',
-                voucherCode: '',
-                discountAmount: 0,
+                items: [],
+                selectedVoucherIds: [],
+                voucherDiscounts: {},
                 note: ''
             };
         }
 
-        // Bật màn hình: Khởi tạo duy nhất 1 tab đầu tiên thay vì đổ cả 5 tab như trước
+        // ==================== TAB MANAGEMENT ====================
         function initPOSSystemTabs() {
             posTabs.push(createNewTabObject("Hóa đơn 1"));
             renderTabsHeaders();
             loadActiveTabToSidebarCart();
         }
 
-        // Vẽ hệ thống nút Tab động và nút Dấu Cộng (+) lên thanh Header điều hướng
         function renderTabsHeaders() {
             let html = '';
             posTabs.forEach((tab, index) => {
                 let badgeItemCount = tab.items.length > 0 ? `<span class="badge bg-danger ms-1" style="font-size:0.65rem;">${tab.items.length}</span>` : '';
-
-                // NÚT ĐÓNG TAB (DẤU X): Chỉ hiển thị khi quầy đang mở từ 2 hóa đơn chờ trở lên
-                let closeBtn = posTabs.length > 1
-                    ? `<i class="bi bi-x-lg ms-2 btn-close-tab text-white-50" style="font-size: 0.65rem; cursor: pointer; transition: color 0.2s;" onclick="closePosTab(event, ${index})" title="Đóng hóa đơn này"></i>`
-                    : '';
-
+                let closeBtn = posTabs.length > 1 ? `<i class="bi bi-x-lg ms-2 btn-close-tab text-white-50" style="font-size:0.65rem; cursor:pointer;" onclick="closePosTab(event, ${index})" title="Đóng hóa đơn"></i>` : '';
                 html += `<button class="btn btn-sm btn-dark tab-waiting py-1 px-3 d-inline-flex align-items-center ${index === activeTabIdx ? 'active' : ''}" onclick="switchActiveTab(${index})">
-                            <i class="bi bi-file-earmark-text me-1"></i> ${tab.tabName}${badgeItemCount}
-                            ${closeBtn}
+                            <i class="bi bi-file-earmark-text me-1"></i> ${tab.tabName}${badgeItemCount} ${closeBtn}
                          </button>&nbsp;`;
             });
-
-            // NÚT DẤU CỘNG (+): Chỉ hiển thị khi tổng số tab đang mở nhỏ hơn giới hạn 5 tab
             if (posTabs.length < 5) {
-                html += `<button class="btn btn-sm btn-success rounded-circle ms-1" style="width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center;" onclick="addNewPosTab()" title="Mở thêm hóa đơn mới (Tối đa 5)">
-                            <i class="bi bi-plus-lg"></i>
-                         </button>`;
+                html += `<button class="btn btn-sm btn-success rounded-circle ms-1" style="width:28px;height:28px;padding:0;" onclick="addNewPosTab()" title="Mở thêm hóa đơn mới (Tối đa 5)"><i class="bi bi-plus-lg"></i></button>`;
             }
             $('#posTabsHeaders').html(html);
         }
 
-        // Thao tác bấm nút dấu (+) để sinh thêm 1 đơn hàng mới
         function addNewPosTab() {
-            if (posTabs.length >= 5) {
-                alert("Hệ thống giới hạn tối đa phục vụ 5 hóa đơn chờ cùng lúc tại quầy.");
-                return;
-            }
-
-            // Tính toán số thứ tự hóa đơn tiếp theo để đặt tên (tránh trùng lặp khi đóng/mở xen kẽ)
+            if (posTabs.length >= 5) { alert("Tối đa 5 hóa đơn chờ."); return; }
             let nextNum = 1;
-            while(posTabs.some(t => t.tabName === `Hóa đơn ${nextNum}`)) {
-                nextNum++;
-            }
-
-            // Tạo và đẩy tab mới vào mảng quản lý
+            while(posTabs.some(t => t.tabName === `Hóa đơn ${nextNum}`)) nextNum++;
             posTabs.push(createNewTabObject(`Hóa đơn ${nextNum}`));
-
-            // Tự động chuyển tiêu điểm (Focus) sang ngay tab mới vừa tạo
             activeTabIdx = posTabs.length - 1;
-
             renderTabsHeaders();
             loadActiveTabToSidebarCart();
-            $('#txtVoucherCode').val('');
             $('#txtCustomerSearch').val('');
         }
 
-        // Thao tác bấm dấu (X) để đóng/hủy một tab hóa đơn chờ bất kỳ
         function closePosTab(event, index) {
-            event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài gây nhảy tab nhầm
-
+            event.stopPropagation();
             let tab = posTabs[index];
-            // Nếu tab đang có hàng, bắt buộc phải hỏi ý kiến thu ngân để tránh mất dữ liệu
             if (tab.items.length > 0) {
-                if (!confirm(`Cảnh báo: Hóa đơn [${tab.tabName}] đang có sản phẩm trong giỏ hàng. Bạn có chắc chắn muốn xóa bỏ và đóng tab này không?`)) {
-                    return;
-                }
+                if (!confirm(`Hóa đơn [${tab.tabName}] đang có sản phẩm. Bạn có chắc chắn muốn đóng?`)) return;
             }
-
-            posTabs.splice(index, 1); // Xóa khỏi mảng
-
-            // Cân đối lại vị trí activeTabIdx sau khi xóa tab để tránh lỗi tràn mảng dữ liệu JavaScript
-            if (activeTabIdx >= posTabs.length) {
-                activeTabIdx = posTabs.length - 1;
-            } else if (activeTabIdx === index) {
-                if(activeTabIdx < 0) activeTabIdx = 0;
-            }
-
+            posTabs.splice(index, 1);
+            if (activeTabIdx >= posTabs.length) activeTabIdx = posTabs.length - 1;
+            else if (activeTabIdx === index) activeTabIdx = activeTabIdx < 0 ? 0 : activeTabIdx;
             renderTabsHeaders();
             loadActiveTabToSidebarCart();
-
-            // Đồng bộ lại ô nhập voucher của tab được chuyển đến
-            if(posTabs[activeTabIdx]) {
-                $('#txtVoucherCode').val(posTabs[activeTabIdx].voucherCode);
-            }
         }
 
-        // Chuyển đổi qua lại giữa các Tab đơn hàng
         function switchActiveTab(tabIndex) {
             activeTabIdx = tabIndex;
             renderTabsHeaders();
             loadActiveTabToSidebarCart();
-            $('#txtVoucherCode').val(posTabs[activeTabIdx].voucherCode);
             $('#txtCustomerSearch').val('');
         }
 
-        // 2. TẢI DỮ LIỆU SẢN PHẨM TỪ BACKEND KHO VẬT LÝ
+        // ==================== SẢN PHẨM ====================
         function loadProductsFromWarehouse() {
             $.ajax({
                 url: '/api/admin/pos/products',
@@ -444,31 +396,39 @@
                     localProductsCache = res;
                     renderProductsGrid(res);
                 },
-                error: function() { alert("Không thể đồng bộ danh sách sản phẩm từ kho vật lý."); }
+                error: function() { alert("Không thể tải sản phẩm."); }
             });
         }
 
         function renderProductsGrid(products) {
             let html = '';
             if(products.length === 0) {
-                html = `<div class="col-12 text-center text-muted py-5"><i class="bi bi-exclamation-circle fs-3"></i><br>Không có sản phẩm nào khả dụng hoặc còn tồn kho.</div>`;
+                html = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-exclamation-circle fs-3"></i><br>Không có sản phẩm khả dụng.</div>`;
             } else {
                 products.forEach(p => {
                     let imgUrl = p.hinhAnhUrl ? p.hinhAnhUrl : '/images/default-product.png';
+                    let badgeHtml = p.badgeText ? `<span class="position-absolute top-0 end-0 badge bg-danger m-1">${p.badgeText}</span>` : '';
+                    let priceHtml = '';
+                    if (p.giaSauGiam < p.giaGoc) {
+                        priceHtml = `<div><span class="text-muted text-decoration-line-through small">${p.giaGoc.toLocaleString('vi-VN')} đ</span> <span class="text-danger fw-bold small ms-1">${p.giaSauGiam.toLocaleString('vi-VN')} đ</span></div>`;
+                    } else {
+                        priceHtml = `<span class="text-danger fw-bold small">${p.giaGoc.toLocaleString('vi-VN')} đ</span>`;
+                    }
                     html += `
                         <div class="col-sm-6 col-md-4 col-lg-3">
                             <div class="card h-100 product-card shadow-xs" onclick="addProductToActiveCart('${p.chiTietSanPhamID}')">
-                                <div class="position-relative bg-light text-center d-flex align-items-center justify-content-center border-bottom" style="height: 120px; overflow: hidden; border-top-left-radius: 7px; border-top-right-radius: 7px;">
-                                   <img src="${imgUrl}" class="img-fluid" alt="${p.tenSanPham}" style="max-height: 100%; max-width: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='/images/default-product.png';" />
+                                <div class="position-relative bg-light text-center d-flex align-items-center justify-content-center border-bottom" style="height:120px; overflow:hidden; border-radius:7px 7px 0 0;">
+                                    <img src="${imgUrl}" class="img-fluid" alt="${p.tenSanPham}" style="max-height:100%; max-width:100%; object-fit:cover;" onerror="this.onerror=null; this.src='/images/default-product.png';" />
+                                    ${badgeHtml}
                                 </div>
                                 <div class="card-body p-2 d-flex flex-column justify-content-between">
                                     <div>
                                         <span class="badge bg-light text-dark border small mb-1">${p.sku}</span>
                                         <h6 class="card-title small fw-bold text-dark mb-1 text-truncate" title="${p.tenSanPham}">${p.tenSanPham}</h6>
-                                        <div class="text-muted" style="font-size: 0.75rem;">Cỡ: ${p.kichCo} | Màu: ${p.mauSac}</div>
+                                        <div class="text-muted" style="font-size:0.75rem;">Cỡ: ${p.kichCo} | Màu: ${p.mauSac}</div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <span class="text-danger fw-bold small">${p.giaBan.toLocaleString('vi-VN')} đ</span>
+                                        ${priceHtml}
                                         <span class="badge bg-success-subtle text-success rounded-1" style="font-size:0.7rem;">Kho: ${p.soLuongTonKho}</span>
                                     </div>
                                 </div>
@@ -479,115 +439,70 @@
             $('#posProductGrid').html(html);
         }
 
-        // Thêm sản phẩm được click vào giỏ hàng của Tab đang hiển thị
-        function addProductToActiveCart(chiTietId) {
+        async function addProductToActiveCart(chiTietId) {
             let activeTab = posTabs[activeTabIdx];
             let product = localProductsCache.find(p => p.chiTietSanPhamID == chiTietId);
             if(!product) return;
+            try {
+                const response = await fetch(`/api/admin/pos/check-stock/${chiTietId}`);
+                if (!response.ok) { alert("Không thể kiểm tra tồn kho."); return; }
+                const data = await response.json();
+                const currentStock = data.soLuongTonKho;
+                product.soLuongTonKho = currentStock;
 
-            let existingItem = activeTab.items.find(item => item.id === chiTietId);
-            if(existingItem) {
-                if(existingItem.qty >= product.soLuongTonKho) {
-                    alert(`Sản phẩm [${product.tenSanPham}] đã đạt giới hạn tồn kho vật lý tối đa tại quầy (${product.soLuongTonKho}).`);
+                let existingItem = activeTab.items.find(item => item.id === chiTietId);
+                let currentQtyInCart = existingItem ? existingItem.qty : 0;
+                if (currentQtyInCart + 1 > currentStock) {
+                    alert(`Sản phẩm [${product.tenSanPham}] chỉ còn ${currentStock} sản phẩm.`);
                     return;
                 }
-                existingItem.qty += 1;
-            } else {
-                activeTab.items.push({
-                    id: product.chiTietSanPhamID,
-                    name: product.tenSanPham,
-                    sku: product.sku,
-                    variant: `${product.kichCo} / ${product.mauSac}`,
-                    price: product.giaBan,
-                    vatRate: product.mucVAT,
-                    qty: 1,
-                    stock: product.soLuongTonKho
-                });
+                if(existingItem) {
+                    existingItem.qty += 1;
+                    existingItem.stock = currentStock;
+                } else {
+                    activeTab.items.push({
+                        id: product.chiTietSanPhamID,
+                        name: product.tenSanPham,
+                        sku: product.sku,
+                        variant: `${product.kichCo} / ${product.mauSac}`,
+                        price: product.giaSauGiam,
+                        originalPrice: product.giaGoc,
+                        vatRate: product.mucVAT,
+                        qty: 1,
+                        stock: currentStock,
+                        sanPhamID: product.sanPhamID,
+                        danhMucID: product.danhMucID
+                    });
+                }
+                renderTabsHeaders();
+                loadActiveTabToSidebarCart();
+            } catch (err) {
+                alert("Lỗi kết nối khi kiểm tra tồn kho.");
+                console.error(err);
             }
-            renderTabsHeaders();
-            loadActiveTabToSidebarCart();
         }
 
-        // Đổ dữ liệu giỏ hàng của Tab hiện tại lên thanh Sidebar bên phải
-        function loadActiveTabToSidebarCart() {
-            let activeTab = posTabs[activeTabIdx];
-            if(!activeTab) return;
-
-            // Xử lý Badge hiển thị khách hàng
-            if(activeTab.customerId !== 'KH000000') {
-                $('#lblSelectedCustomer').text(`${activeTab.customerName} (${activeTab.customerPhone})`);
-                $('#selectedCustomerBadge').removeClass('d-none');
-            } else {
-                $('#selectedCustomerBadge').addClass('d-none');
-            }
-
-            let html = '';
-            let totalCartPrice = 0;
-            let totalVatPrice = 0;
-
-            if(activeTab.items.length === 0) {
-                html = `<tr><td colspan="4" class="text-center py-5 text-muted"><i class="bi bi-cart-x fs-4"></i><br>Giỏ hàng trống. Bấm chọn hàng minh họa bên trái.</td></tr>`;
-            } else {
-                activeTab.items.forEach((item, index) => {
-                    let itemTotalPrice = item.price * item.qty;
-                    let itemTotalVat = (itemTotalPrice * item.vatRate / 100);
-                    totalCartPrice += itemTotalPrice;
-                    totalVatPrice += itemTotalVat;
-
-                    html += `
-                        <tr style="border-bottom:1px solid #f1f5f9;">
-                            <td style="width: 50%;">
-                                <div class="fw-bold text-dark text-truncate" style="max-width:140px;">${item.name}</div>
-                                <div class="text-muted" style="font-size:0.7rem;">${item.variant}</div>
-                            </td>
-                            <td style="width: 25%;">
-                                <div class="input-group input-group-sm">
-                                    <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="updateItemQtyInCart(${index}, -1)">-</button>
-                                    <input type="text" class="form-control form-control-sm text-center p-0 shadow-none border-secondary" value="${item.qty}" readonly style="max-width:30px; font-size:0.75rem;" />
-                                    <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="updateItemQtyInCart(${index}, 1)">+</button>
-                                </div>
-                            </td>
-                            <td class="text-end fw-medium text-dark" style="width: 20%;">${itemTotalPrice.toLocaleString('vi-VN')} đ</td>
-                            <td class="text-center" style="width: 5%;">
-                                <button class="btn btn-link text-danger p-0 border-0" onclick="deleteItemFromCart(${index})"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>`;
-                });
-            }
-
-            $('#cartItemsBody').html(html);
-
-            let finalPrice = totalCartPrice + totalVatPrice - activeTab.discountAmount;
-            if(finalPrice < 0) finalPrice = 0;
-
-            $('#lblTotalCartPrice').text(`${totalCartPrice.toLocaleString('vi-VN')} đ`);
-            $('#lblTotalVatPrice').text(`${totalVatPrice.toLocaleString('vi-VN')} đ`);
-
-            if(activeTab.discountAmount > 0) {
-                $('#lblVoucherDiscount').text(`-${activeTab.discountAmount.toLocaleString('vi-VN')} đ`);
-                $('#boxDiscount').removeClass('d-none');
-            } else {
-                $('#boxDiscount').addClass('d-none');
-            }
-            $('#lblFinalPrice').text(`${finalPrice.toLocaleString('vi-VN')} đ`);
-            calculateRefundCash(finalPrice);
-        }
-
-        function updateItemQtyInCart(index, offset) {
+        async function updateItemQtyInCart(index, offset) {
             let activeTab = posTabs[activeTabIdx];
             let item = activeTab.items[index];
             let newQty = item.qty + offset;
-
-            if(newQty <= 0) {
-                deleteItemFromCart(index);
-                return;
+            if(newQty <= 0) { deleteItemFromCart(index); return; }
+            try {
+                const response = await fetch(`/api/admin/pos/check-stock/${item.id}`);
+                if (!response.ok) { alert("Không thể kiểm tra tồn kho."); return; }
+                const data = await response.json();
+                const currentStock = data.soLuongTonKho;
+                item.stock = currentStock;
+                if(newQty > currentStock) {
+                    alert(`Sản phẩm [${item.name}] chỉ còn ${currentStock} sản phẩm.`);
+                    return;
+                }
+                item.qty = newQty;
+                loadActiveTabToSidebarCart();
+            } catch (err) {
+                alert("Lỗi kết nối.");
+                console.error(err);
             }
-            if(newQty > item.stock) {
-                alert(`Không thể tăng số lượng mua vượt mức giới hạn tồn kho (${item.stock}).`);
-                return;
-            }
-            item.qty = newQty;
-            loadActiveTabToSidebarCart();
         }
 
         function deleteItemFromCart(index) {
@@ -599,7 +514,6 @@
         function calculateRefundCash(finalPrice) {
             let cashGiven = parseFloat($('#numCustomerCash').val()) || 0;
             let finalAmt = finalPrice !== undefined ? finalPrice : (parseFloat($('#lblFinalPrice').text().replace(/\./g, '').replace(' đ', '')) || 0);
-
             if(cashGiven >= finalAmt && finalAmt > 0) {
                 $('#lblRefundCash').text(`${(cashGiven - finalAmt).toLocaleString('vi-VN')} đ`);
             } else {
@@ -607,17 +521,197 @@
             }
         }
 
-                // ==========================================
-        // 3. TÌM KIẾM KHÁCH HÀNG VÀ THÊM NHANH AJAX
-        // ==========================================
+        // ==================== VOUCHER ====================
+        function loadAvailableVouchers() {
+            let activeTab = posTabs[activeTabIdx];
+            if (!activeTab || activeTab.items.length === 0) {
+                $('#voucherSection').html('<div class="text-muted small text-center py-2">Chưa có sản phẩm trong giỏ</div>');
+                currentVoucherData = [];
+                return;
+            }
+            let productIds = activeTab.items.map(item => item.id);
+            $.ajax({
+                url: '/api/admin/pos/vouchers/available',
+                type: 'GET',
+                traditional: true,
+                data: { productIds: productIds },
+                success: function(vouchers) {
+                    currentVoucherData = vouchers;
+                    renderVoucherList(vouchers);
+                },
+                error: function() {
+                    $('#voucherSection').html('<div class="text-danger small text-center py-2">Lỗi tải voucher</div>');
+                }
+            });
+        }
+
+        function renderVoucherList(vouchers) {
+            let activeTab = posTabs[activeTabIdx];
+            let html = '';
+            if (!vouchers || vouchers.length === 0) {
+                html = '<div class="text-muted small text-center py-2">Không có ưu đãi khả dụng</div>';
+            } else {
+                vouchers.forEach(v => {
+                    let checked = activeTab.selectedVoucherIds.includes(v.khuyenMaiId) ? 'checked' : '';
+                    let discountDesc = v.loaiGiamGia === 1 ? `Giảm ${v.giaTriGiam}%` : `Giảm ${v.giaTriGiam.toLocaleString('vi-VN')}đ`;
+                    if (v.loaiGiamGia === 1 && v.giamToiDa > 0) discountDesc += ` (tối đa ${v.giamToiDa.toLocaleString('vi-VN')}đ)`;
+                    html += `
+                        <div class="form-check voucher-item py-1">
+                            <input class="form-check-input voucher-checkbox" type="checkbox" value="${v.khuyenMaiId}" id="voucher_${v.khuyenMaiId}" ${checked}>
+                            <label class="form-check-label" for="voucher_${v.khuyenMaiId}">
+                                <span class="fw-medium">${v.maCode}</span> - ${discountDesc}
+                                ${v.moTa ? `<br><small class="text-muted">${v.moTa}</small>` : ''}
+                            </label>
+                        </div>`;
+                });
+            }
+            $('#voucherSection').html(html);
+            $('.voucher-checkbox').off('change').on('change', function() {
+                let voucherId = $(this).val();
+                if ($(this).is(':checked')) {
+                    if (!activeTab.selectedVoucherIds.includes(voucherId)) activeTab.selectedVoucherIds.push(voucherId);
+                } else {
+                    activeTab.selectedVoucherIds = activeTab.selectedVoucherIds.filter(id => id !== voucherId);
+                }
+                recalcVoucherDiscounts();
+                updateCheckoutSummary();
+            });
+        }
+
+        function recalcVoucherDiscounts() {
+            let activeTab = posTabs[activeTabIdx];
+            activeTab.voucherDiscounts = {};
+            if (activeTab.selectedVoucherIds.length === 0 || activeTab.items.length === 0) return;
+
+            let selectedVouchers = currentVoucherData.filter(v => activeTab.selectedVoucherIds.includes(v.khuyenMaiId));
+            if (selectedVouchers.length === 0) return;
+
+            let productTotalMap = {};
+            let categoryTotalMap = {};
+            let totalCart = 0;
+
+            activeTab.items.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                totalCart += itemTotal;
+                let spId = item.sanPhamID || 'unknown';
+                productTotalMap[spId] = (productTotalMap[spId] || 0) + itemTotal;
+                let dmId = item.danhMucID || 'unknown';
+                categoryTotalMap[dmId] = (categoryTotalMap[dmId] || 0) + itemTotal;
+            });
+
+            selectedVouchers.forEach(v => {
+                let discount = 0;
+                let applicableTotal = 0;
+
+                if (v.applicableSanPhamIds && v.applicableSanPhamIds.length > 0) {
+                    v.applicableSanPhamIds.forEach(spId => {
+                        applicableTotal += (productTotalMap[spId] || 0);
+                    });
+                } else if (v.applicableDanhMucId) {
+                    applicableTotal = categoryTotalMap[v.applicableDanhMucId] || 0;
+                } else {
+                    applicableTotal = totalCart;
+                }
+
+                if (applicableTotal <= 0) return;
+
+                if (v.loaiGiamGia === 0) {
+                    discount = v.giaTriGiam;
+                } else {
+                    discount = applicableTotal * (v.giaTriGiam / 100);
+                    if (v.giamToiDa > 0 && discount > v.giamToiDa) discount = v.giamToiDa;
+                }
+
+                if (discount > applicableTotal) discount = applicableTotal;
+                activeTab.voucherDiscounts[v.khuyenMaiId] = discount;
+            });
+        }
+
+        // Hàm cập nhật tổng tiền - đã sửa logic VAT
+        function updateCheckoutSummary() {
+            let activeTab = posTabs[activeTabIdx];
+            let totalCartPrice = 0, totalVatPriceOld = 0;
+            activeTab.items.forEach(item => {
+                let itemTotal = item.price * item.qty;
+                totalCartPrice += itemTotal;
+                totalVatPriceOld += itemTotal * item.vatRate / 100;
+            });
+
+            let totalDiscount = 0;
+            for (let id in activeTab.voucherDiscounts) {
+                totalDiscount += activeTab.voucherDiscounts[id];
+            }
+
+            // Giá sau giảm giá
+            let priceAfterDiscount = totalCartPrice - totalDiscount;
+            if (priceAfterDiscount < 0) priceAfterDiscount = 0;
+
+            // Tính VAT trung bình dựa trên tỷ lệ VAT cũ
+            let vatRateAvg = totalCartPrice > 0 ? (totalVatPriceOld / totalCartPrice) : 0;
+            let newTotalVat = priceAfterDiscount * vatRateAvg;
+            if (newTotalVat < 0) newTotalVat = 0;
+
+            let finalPrice = priceAfterDiscount + newTotalVat;
+
+            // Cập nhật giao diện
+            $('#lblTotalCartPrice').text(`${priceAfterDiscount.toLocaleString('vi-VN')} đ`);
+            $('#lblTotalVatPrice').text(`${newTotalVat.toLocaleString('vi-VN')} đ`);
+
+            if (totalDiscount > 0) {
+                $('#lblVoucherDiscount').text(`-${totalDiscount.toLocaleString('vi-VN')} đ`);
+                $('#boxDiscount').removeClass('d-none');
+            } else {
+                $('#boxDiscount').addClass('d-none');
+            }
+
+            $('#lblFinalPrice').text(`${finalPrice.toLocaleString('vi-VN')} đ`);
+            calculateRefundCash(finalPrice);
+        }
+
+        window.loadActiveTabToSidebarCart = function() {
+            let activeTab = posTabs[activeTabIdx];
+            if(!activeTab) return;
+            if(activeTab.customerId !== 'KH000000') {
+                $('#lblSelectedCustomer').text(`${activeTab.customerName} (${activeTab.customerPhone})`);
+                $('#selectedCustomerBadge').removeClass('d-none');
+            } else {
+                $('#selectedCustomerBadge').addClass('d-none');
+            }
+            let html = '';
+            if(activeTab.items.length === 0) {
+                html = `<tr><td colspan="4" class="text-center py-5 text-muted"><i class="bi bi-cart-x fs-4"></i><br>Giỏ hàng trống.</td></tr>`;
+            } else {
+                activeTab.items.forEach((item, index) => {
+                    let itemTotalPrice = item.price * item.qty;
+                    html += `
+                        <tr style="border-bottom:1px solid #f1f5f9;">
+                            <td style="width:50%;">
+                                <div class="fw-bold text-dark text-truncate" style="max-width:140px;">${item.name}</div>
+                                <div class="text-muted" style="font-size:0.7rem;">${item.variant}</div>
+                            </td>
+                            <td style="width:25%;">
+                                <div class="input-group input-group-sm">
+                                    <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="updateItemQtyInCart(${index}, -1)">-</button>
+                                    <input type="text" class="form-control form-control-sm text-center p-0 shadow-none border-secondary" value="${item.qty}" readonly style="max-width:30px; font-size:0.75rem;" />
+                                    <button class="btn btn-xs btn-outline-secondary px-1 py-0" onclick="updateItemQtyInCart(${index}, 1)">+</button>
+                                </div>
+                            </td>
+                            <td class="text-end fw-medium text-dark" style="width:20%;">${itemTotalPrice.toLocaleString('vi-VN')} đ</td>
+                            <td class="text-center" style="width:5%;"><button class="btn btn-link text-danger p-0 border-0" onclick="deleteItemFromCart(${index})"><i class="bi bi-trash"></i></button></td>
+                        </tr>`;
+                });
+            }
+            $('#cartItemsBody').html(html);
+            loadAvailableVouchers();
+            recalcVoucherDiscounts();
+            updateCheckoutSummary();
+        };
+
+        // ==================== KHÁCH HÀNG & SỰ KIỆN KHỞI TẠO ====================
         $(document).ready(function() {
             initPOSSystemTabs();
             loadProductsFromWarehouse();
-
-            setInterval(() => {
-                let now = new Date();
-                $('#lblLiveClock').text(now.toLocaleTimeString('vi-VN'));
-            }, 1000);
+            setInterval(() => { $('#lblLiveClock').text(new Date().toLocaleTimeString('vi-VN')); }, 1000);
 
             $('#txtProductSearch').on('input', function() {
                 let val = $(this).val().trim();
@@ -634,7 +728,6 @@
                     $('#customerSearchResults').addClass('d-none');
                     return;
                 }
-
                 $.ajax({
                     url: `/api/admin/pos/customers/search?keyword=${encodeURIComponent(keyword)}`,
                     type: 'GET',
@@ -660,7 +753,6 @@
                 tab.customerId = $(this).data('id');
                 tab.customerName = $(this).data('name');
                 tab.customerPhone = $(this).data('phone');
-
                 $('#customerSearchResults').addClass('d-none');
                 $('#txtCustomerSearch').val('');
                 loadActiveTabToSidebarCart();
@@ -677,9 +769,7 @@
             $('#btnSaveQuickCustomer').click(function() {
                 let name = $('#txtNewCustomerName').val().trim();
                 let phone = $('#txtNewCustomerPhone').val().trim();
-
                 if(!name || !phone) { alert("Vui lòng điền đầy đủ Tên và SĐT khách hàng."); return; }
-
                 $.ajax({
                     url: '/api/admin/pos/customers/quick-add',
                     type: 'POST',
@@ -691,7 +781,6 @@
                         tab.customerId = res.khachHangID;
                         tab.customerName = res.ten;
                         tab.customerPhone = res.soDienThoai;
-
                         $('#modalQuickAddCustomer').modal('hide');
                         $('#txtNewCustomerName,#txtNewCustomerPhone').val('');
                         loadActiveTabToSidebarCart();
@@ -708,52 +797,70 @@
                 }
             });
 
-            $('#numCustomerCash').on('input', function() { calculateRefundCash(); });
+            $('#numCustomerCash').on('input', function() {
+                let currentFinal = parseFloat($('#lblFinalPrice').text().replace(/\./g, '').replace(' đ', '')) || 0;
+                calculateRefundCash(currentFinal);
+            });
+
+            $('#btnRefreshVouchers').click(function() { loadAvailableVouchers(); });
+
+            $('#btnCancelQRPayment').click(function() {
+                if (!confirm('Bạn chắc chắn muốn hủy đơn hàng này? Tồn kho và voucher sẽ được hoàn lại.')) return;
+                if (!currentCheckoutHoaDonId) {
+                    alert('Không tìm thấy mã hóa đơn để hủy.');
+                    return;
+                }
+                $.ajax({
+                    url: `/api/admin/pos/checkout/${currentCheckoutHoaDonId}/cancel`,
+                    type: 'POST',
+                    success: function(res) {
+                        alert(res.message);
+                        $('#modalQRCode').modal('hide');
+                        $('#iframePayOS').attr('src', '');
+                        currentCheckoutHoaDonId = null;
+                        loadProductsFromWarehouse();
+                    },
+                    error: function(err) {
+                        alert(err.responseJSON?.message || "Lỗi khi hủy đơn hàng.");
+                    }
+                });
+            });
         });
 
-        // ==========================================
-        // 4. XỬ LÝ GỬI ĐƠN LÊN BACKEND & GỌI LỆNH IN NHIỆT ẢO
-        // ==========================================
+        // ==================== CHECKOUT ====================
         let currentFinalAmt = 0;
         let currentKieuPay = 0;
+        let currentCheckoutHoaDonId = null;
 
         $('#btnCompletePOSCheckout').click(function() {
             let activeTab = posTabs[activeTabIdx];
-            if(activeTab.items.length === 0) { alert("Giỏ hàng đang trống, không thể thanh toán."); return; }
-
+            if(activeTab.items.length === 0) { alert("Giỏ hàng trống."); return; }
             currentFinalAmt = parseFloat($('#lblFinalPrice').text().replace(/\./g, '').replace(' đ', '')) || 0;
             currentKieuPay = parseInt($('input[name="paymentType"]:checked').val());
-
             if(currentKieuPay === 0) {
-                // TRƯỜNG HỢP 1: TRẢ TIỀN MẶT -> Lưu DB & In hóa đơn luôn
                 let cashGiven = parseFloat($('#numCustomerCash').val()) || 0;
-                if(cashGiven < currentFinalAmt) { alert("Số tiền khách đưa chưa đủ để hoàn tất đơn hàng."); return; }
+                if(cashGiven < currentFinalAmt) { alert("Số tiền khách đưa chưa đủ."); return; }
                 processFinalCheckoutDB();
-            }
-            else if (currentKieuPay === 1) {
-                // TRƯỜNG HỢP 2: CHUYỂN KHOẢN QR -> Gọi API CheckoutPOS để lấy link và tạo QR
+            } else {
                 let btn = $(this);
                 let originalText = btn.html();
                 btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Đang tạo mã QR...');
-
                 $.ajax({
                     url: '/api/admin/pos/checkout',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         khachHangID: activeTab.customerId,
-                         diaChiID: "DC_POS_SYSTEM",
-                        khuyenMaiID: activeTab.voucherId || null,
-                        ghiChu: activeTab.note || "Bán trực tiếp tại quầy thu ngân",
+                        diaChiID: "DC_POS_SYSTEM",
+                        ghiChu: activeTab.note || "Bán trực tiếp tại quầy",
                         kieuThanhToan: currentKieuPay,
-                        items: activeTab.items.map(item => ({
-                            chiTietSanPhamID: item.id,
-                            soLuongMua: item.qty
-                        }))
+                        voucherIds: activeTab.selectedVoucherIds,
+                        items: activeTab.items.map(item => ({ chiTietSanPhamID: item.id, soLuongMua: item.qty }))
                     }),
                     success: function(res) {
                         btn.prop('disabled', false).html(originalText);
                         if (res.kieuThanhToan === 1 && res.checkoutUrl) {
+                            currentCheckoutHoaDonId = res.hoaDonID;
                             $('#iframePayOS').attr('src', res.checkoutUrl);
                             $('#modalQRCode').modal('show');
                         }
@@ -766,92 +873,85 @@
             }
         });
 
-        // Khi thu ngân xác nhận tiền đã nổ Ting Ting -> Bấm nút trên Pop-up
         $('#btnConfirmQRPaid').click(function() {
             $('#modalQRCode').modal('hide');
-            $('#iframePayOS').attr('src', ''); // Xóa dấu vết link cũ
-            processFinalCheckoutDB(); // Lưu xuống DB và In hóa đơn
+            $('#iframePayOS').attr('src', '');
+            currentKieuPay = 2;
+            processFinalCheckoutDB();
         });
 
-        // HÀM XỬ LÝ LƯU DB & IN HÓA ĐƠN (Tách ra dùng chung)
         function processFinalCheckoutDB() {
             let activeTab = posTabs[activeTabIdx];
-            let payloadItems = activeTab.items.map(item => {
-                return { ChiTietSanPhamID: item.id, SoLuongMua: item.qty };
-            });
-
-            let checkoutPayload = {
+            let payload = {
                 KhachHangID: activeTab.customerId,
                 DiaChiID: "DC_POS_SYSTEM",
-                KhuyenMaiID: activeTab.voucherId || null,
-                GhiChu: activeTab.note || "Bán trực tiếp tại quầy thu ngân",
+                GhiChu: activeTab.note || "Bán trực tiếp tại quầy",
                 KieuThanhToan: currentKieuPay,
                 MaThamChieu: currentKieuPay === 1 ? ("BANKPOS" + Date.now().toString().substring(7)) : "",
-                Items: payloadItems
+                VoucherIds: activeTab.selectedVoucherIds,
+                Items: activeTab.items.map(item => ({ ChiTietSanPhamID: item.id, SoLuongMua: item.qty }))
             };
 
             $.ajax({
                 url: '/api/admin/pos/checkout',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify(checkoutPayload),
+                data: JSON.stringify(payload),
                 success: function(res) {
-                    executeInvoicePrintJob(res.hoaDonId, res.thoiGian, activeTab);
-
-                    // Dọn dẹp Tab sau khi thanh toán xong
+                    executeInvoicePrintJob(
+                        res.hoaDonId,
+                        res.thoiGian,
+                        activeTab,
+                        res.tongTienHang,
+                        res.tongTienVAT,
+                        res.tongGiamGia
+                    );
                     if (posTabs.length > 1) {
                         posTabs.splice(activeTabIdx, 1);
-                        if (activeTabIdx >= posTabs.length) { activeTabIdx = posTabs.length - 1; }
+                        if (activeTabIdx >= posTabs.length) activeTabIdx = posTabs.length - 1;
                     } else {
                         activeTab.items = [];
                         activeTab.customerId = 'KH000000';
                         activeTab.customerName = 'Khách lẻ';
                         activeTab.customerPhone = '0000000000';
-                        activeTab.voucherId = '';
-                        activeTab.voucherCode = '';
-                        activeTab.discountAmount = 0;
+                        activeTab.selectedVoucherIds = [];
+                        activeTab.voucherDiscounts = {};
+                        activeTab.note = '';
                     }
-
                     $('#numCustomerCash').val('');
-                    $('#txtVoucherCode').val('');
                     renderTabsHeaders();
                     loadActiveTabToSidebarCart();
                     loadProductsFromWarehouse();
                 },
-                error: function(err) { alert(err.responseJSON?.message || "Giao dịch thanh toán thất bại."); }
+                error: function(err) { alert(err.responseJSON?.message || "Giao dịch thất bại."); }
             });
         }
 
-        function executeInvoicePrintJob(invoiceId, formattedTime, tabData) {
+        function executeInvoicePrintJob(invoiceId, formattedTime, tabData, tongTienHang, tongVAT, tongGiamGia) {
             let d = new Date(formattedTime);
             $('#printOrderTime').text(`Ngày: ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}`);
             $('#printInvoiceId').text(`Mã HĐ: ${invoiceId}`);
             $('#printCustomer').text(tabData.customerId === 'KH000000' ? 'Khách lẻ' : `${tabData.customerName} - ${tabData.customerPhone}`);
 
             let htmlItems = '';
-            let totalGoodsPrice = 0;
-            let totalVatAmt = 0;
+            let totalGoodsPrice = tongTienHang !== undefined ? tongTienHang : 0;
+            let totalVatAmt = tongVAT !== undefined ? tongVAT : 0;
+            let totalDiscount = tongGiamGia !== undefined ? tongGiamGia : 0;
 
             tabData.items.forEach(item => {
                 let totalItem = item.price * item.qty;
-                totalGoodsPrice += totalItem;
-                totalVatAmt += (totalItem * item.vatRate / 100);
-                htmlItems += `
-                    <tr>
-                        <td>
-                            <div><strong>${item.name}</strong></div>
-                            <div style="font-size:9px; color:#555;">Phân loại: ${item.variant}</div>
-                        </td>
-                        <td style="text-align:center;">${item.qty}</td>
-                        <td style="text-align:right;">${totalItem.toLocaleString('vi-VN')} đ</td>
-                    </tr>`;
+                htmlItems += `<tr>
+                    <td><div><strong>${item.name}</strong></div><div style="font-size:9px;color:#555;">Phân loại: ${item.variant}</div></td>
+                    <td style="text-align:center;">${item.qty}</td>
+                    <td style="text-align:right;">${totalItem.toLocaleString('vi-VN')} đ</td>
+                </tr>`;
             });
 
             $('#printInvoiceItemsBody').html(htmlItems);
             $('#printTotalGoods').text(`${totalGoodsPrice.toLocaleString('vi-VN')} đ`);
             $('#printTotalVat').text(`${totalVatAmt.toLocaleString('vi-VN')} đ`);
-            $('#printDiscount').text(`-${tabData.discountAmount.toLocaleString('vi-VN')} đ`);
-            $('#printFinalAmount').text($('#lblFinalPrice').text());
+            $('#printDiscount').text(`-${totalDiscount.toLocaleString('vi-VN')} đ`);
+            $('#printFinalAmount').text(`${(totalGoodsPrice + totalVatAmt).toLocaleString('vi-VN')} đ`);
 
             $('#invoice-print-template').removeClass('d-none');
             window.print();

@@ -18,6 +18,7 @@
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
+                    <th style="width: 50px;">STT</th>
                     <th>Mã ID</th>
                     <th>Tên Chương Trình</th>
                     <th>Mã Code (Voucher)</th>
@@ -32,6 +33,16 @@
             <tbody id="promoTableBody">
             </tbody>
         </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <span class="small text-muted">
+                    Hiển thị <span id="startRecord">0</span>-<span id="endRecord">0</span> trên tổng <span id="totalRecords">0</span>
+                </span>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+            </nav>
+        </div>
     </div>
 </div>
 
@@ -65,9 +76,12 @@
                             <label class="form-label small fw-bold">Mức giá trị giảm *</label>
                             <input type="number" class="form-control form-control-sm" id="formGiaTriGiam" required min="1" placeholder="Ví dụ: 20 hoặc 50000" />
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Mức giảm tối đa (Trần %)</label>
-                            <input type="number" class="form-control form-control-sm" id="formGiamToiDa" value="0" min="0" placeholder="0 nếu không giới hạn trần" />
+                        <div class="col-md-4 div-percent-only">
+                            <label class="form-label small fw-bold">
+                                Mức giảm tối đa (Trần %)
+                                <i class="bi bi-question-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" title="Số tiền giảm tối đa khi áp dụng mã. Đặt 0 nếu không giới hạn."></i>
+                            </label>
+                            <input type="number" class="form-control form-control-sm" id="formGiamToiDa" value="0" min="0" placeholder="0 nếu không giới hạn" />
                         </div>
 
                         <div class="col-md-6">
@@ -128,30 +142,51 @@
         $(document).ready(function() {
             $('#menu-promotions').addClass('active');
 
-            // Thiết lập mặc định thời gian cho form tạo mới
             const today = new Date().toISOString().slice(0, 16);
             $('#formNgayApDung').val(today);
 
+            let currentPage = 1;
+            const pageSize = 10;
+            let allPromotions = [];
+
             loadPromotions();
 
-            // NẠP TÀI NGUYÊN DANH MỤC & SẢN PHẨM KHI TRANG TRỰC TUYẾN KHỞI CHẠY
-            $.get('/api/admin/promotions/resources', function(res) {
-                // Nạp danh mục vào select
-                let catHtml = '<option value="">-- Chọn danh mục sản phẩm --</option>';
-                res.categories.forEach(c => {
-                    catHtml += `<option value="${c.danhMucID}">${c.ten}</option>`;
-                });
-                $('#formDanhMucId').html(catHtml);
+            // NẠP TÀI NGUYÊN DANH MỤC & SẢN PHẨM
+            $.get('/api/admin/promotions/resources')
+                .done(function(res) {
+                    let catHtml = '<option value="">-- Chọn danh mục sản phẩm --</option>';
+                    if (res.categories && res.categories.length) {
+                        res.categories.forEach(c => {
+                            catHtml += `<option value="${c.danhMucID}">${c.ten}</option>`;
+                        });
+                    }
+                    $('#formDanhMucId').html(catHtml);
 
-                // Nạp sản phẩm vào select multiple
-                let prodHtml = '';
-                res.products.forEach(p => {
-                    prodHtml += `<option value="${p.sanPhamID}">[${p.sanPhamID}] - ${p.ten}</option>`;
+                    let prodHtml = '';
+                    if (res.products && res.products.length) {
+                        res.products.forEach(p => {
+                            prodHtml += `<option value="${p.sanPhamID}">[${p.sanPhamID}] - ${p.ten}</option>`;
+                        });
+                    }
+                    $('#formSanPhamIds').html(prodHtml);
+                })
+                .fail(function(jqXHR) {
+                    console.error("Lỗi tải tài nguyên khuyến mãi:", jqXHR.responseJSON?.message || "Không thể kết nối");
+                    $('#formDanhMucId').html('<option value="">Lỗi tải danh mục</option>');
+                    $('#formSanPhamIds').html('<option value="">Lỗi tải sản phẩm</option>');
                 });
-                $('#formSanPhamIds').html(prodHtml);
-            });
 
-            // Điều khiển ẩn hiện các ô chọn dựa theo Phạm vi áp dụng công khai
+            // Ẩn/hiện ô "Mức giảm tối đa"
+            $('#formLoaiGiamGia').change(function() {
+                if ($(this).val() === '1') {
+                    $('.div-percent-only').removeClass('d-none');
+                } else {
+                    $('.div-percent-only').addClass('d-none');
+                    $('#formGiamToiDa').val('0');
+                }
+            }).trigger('change');
+
+            // Điều khiển ẩn hiện các ô chọn dựa theo Phạm vi
             $('#formPhamVi').change(function() {
                 const val = $(this).val();
                 if (val === 'category') {
@@ -168,76 +203,118 @@
 
             // 1. Hàm gọi API lấy danh sách khuyến mãi
             function loadPromotions() {
-                $('#promoTableBody').html('<tr><td colspan="9" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang tải danh sách ưu đãi...</td></tr>');
-                $.get('/api/admin/promotions', function(data) {
-                    let html = '';
-                    if(data.length === 0) {
-                        html = '<tr><td colspan="9" class="text-center py-4 text-muted">Chưa có chương trình khuyến mãi nào được tạo.</td></tr>';
-                    } else {
-                        data.forEach(promo => {
-                            const isActived = promo.trangThaiInt === 1;  // 1 = HoatDong
-                            const valBadge = promo.loaiGiamGia.includes("%") ? `${promo.giaTriGiam}%` : `${promo.giaTriGiam.toLocaleString('vi-VN')}đ`;
-
-                            html += `
-                                <tr>
-                                    <td class="text-secondary small font-monospace fw-bold">${promo.khuyenMaiId}</td>
-                                    <td class="fw-medium text-dark">${promo.ten}</td>
-                                    <td><span class="badge bg-light text-dark border font-monospace px-2 py-1">${promo.maCode}</span></td>
-                                    <td class="small">${promo.loaiGiamGia}</td>
-                                    <td class="fw-bold text-danger">${valBadge}</td>
-                                    <td class="small">
-                                        ${new Date(promo.ngayApDung).toLocaleDateString('vi-VN')} - ${new Date(promo.ngayKetThuc).toLocaleDateString('vi-VN')}
-                                    </td>
-                                    <td class="text-center small fw-medium">${promo.soLuongDaDung} / ${promo.soLuongToiDa}</td>
-                                            <td class="text-center">
-            <button class="btn btn-sm ${isActived ? 'btn-success' : 'btn-danger'} btn-toggle-promo" data-id="${promo.khuyenMaiId}">
-                ${isActived ? 'Đang hoạt động' : 'Đã tắt'}
-            </button>
-        </td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-danger btn-delete-promo" data-id="${promo.khuyenMaiId}"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                </tr>`;
-                        });
-                    }
-                    $('#promoTableBody').html(html);
-                });
+                $('#promoTableBody').html('<tr><td colspan="10" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang tải danh sách ưu đãi...</td></tr>');
+                $.get('/api/admin/promotions')
+                    .done(function(data) {
+                        allPromotions = data || [];
+                        currentPage = 1;
+                        renderPromotionsPage();
+                    })
+                    .fail(function(jqXHR, textStatus, errorThrown) {
+                        console.error("Lỗi tải danh sách khuyến mãi:", textStatus, errorThrown);
+                        $('#promoTableBody').html('<tr><td colspan="10" class="text-center text-danger py-4">Lỗi tải danh sách khuyến mãi. Vui lòng thử lại sau.</td></tr>');
+                        $('#pagination').empty();
+                        $('#startRecord').text('0');
+                        $('#endRecord').text('0');
+                        $('#totalRecords').text('0');
+                    });
             }
 
-                   // 2. Xử lý Bật/Tắt trạng thái bằng nút bấm
-        $(document).on('click', '.btn-toggle-promo', function() {
-            const btn = $(this);
-            const promoId = btn.data('id');
+            function renderPromotionsPage() {
+                const start = (currentPage - 1) * pageSize;
+                const end = Math.min(start + pageSize, allPromotions.length);
+                const pageData = allPromotions.slice(start, end);
 
-            $.ajax({
-                url: `/api/admin/promotions/${promoId}/toggle-status`,
-                type: 'PUT',
-                        success: function(res) {
-            // Dùng trực tiếp chuỗi trạng thái từ API
-            const isActive = res.currentStatus === "HoatDong";
-            if (isActive) {
-                btn.removeClass('btn-danger').addClass('btn-success');
-                btn.text('Đang hoạt động');
-            } else {
-                btn.removeClass('btn-success').addClass('btn-danger');
-                btn.text('Đã tắt');
-            }
-        },
-                error: function() {
-                    alert("Không thể chuyển đổi trạng thái khuyến mãi.");
+                let html = '';
+                if (pageData.length === 0) {
+                    html = '<tr><td colspan="10" class="text-center py-4 text-muted">Chưa có chương trình khuyến mãi nào được tạo.</td></tr>';
+                } else {
+                    pageData.forEach((promo, index) => {
+                        const stt = start + index + 1;
+                        // SỬA: Dùng trangThaiInt để xác định trạng thái (1 = HoatDong)
+                        const isActived = promo.trangThaiInt === 1;
+                        const valBadge = promo.loaiGiamGia.includes("%") ? `${promo.giaTriGiam}%` : `${promo.giaTriGiam.toLocaleString('vi-VN')}đ`;
+                        html += `
+                            <tr>
+                                <td class="text-center small text-muted">${stt}</td>
+                                <td class="text-secondary small font-monospace fw-bold">${promo.khuyenMaiId}</td>
+                                <td class="fw-medium text-dark">${promo.ten}</td>
+                                <td><span class="badge bg-light text-dark border font-monospace px-2 py-1">${promo.maCode}</span></td>
+                                <td class="small">${promo.loaiGiamGia}</td>
+                                <td class="fw-bold text-danger">${valBadge}</td>
+                                <td class="small">${new Date(promo.ngayApDung).toLocaleDateString('vi-VN')} - ${new Date(promo.ngayKetThuc).toLocaleDateString('vi-VN')}</td>
+                                <td class="text-center small fw-medium">${promo.soLuongDaDung} / ${promo.soLuongToiDa}</td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input btn-toggle-promo" type="checkbox" data-id="${promo.khuyenMaiId}" ${isActived ? 'checked' : ''}>
+                                        <label class="form-check-label small fw-bold ${isActived ? 'text-success' : 'text-danger'}">${promo.trangThai}</label>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-dark btn-edit-promo me-1" data-id="${promo.khuyenMaiId}"><i class="bi bi-pencil-square"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-promo" data-id="${promo.khuyenMaiId}"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>`;
+                    });
                 }
-            });
-        });
+                $('#promoTableBody').html(html);
 
-            // 3. Xử lý gửi Form tạo mới mã giảm giá (POST)
+                $('#startRecord').text(allPromotions.length > 0 ? start + 1 : 0);
+                $('#endRecord').text(end);
+                $('#totalRecords').text(allPromotions.length);
+
+                const totalPages = Math.ceil(allPromotions.length / pageSize);
+                let paginationHtml = '';
+                if (totalPages > 1) {
+                    paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">«</a></li>`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                    }
+                    paginationHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">»</a></li>`;
+                }
+                $('#pagination').html(paginationHtml);
+            }
+
+            // 2. Xử lý Bật/Tắt trạng thái hoạt động (ĐÃ SỬA)
+            $(document).on('change', '.btn-toggle-promo', function() {
+                const checkbox = $(this);
+                const promoId = checkbox.data('id');
+                // Lưu trạng thái hiện tại trước khi gửi để khôi phục nếu lỗi
+                const previousChecked = checkbox.is(':checked');
+
+                $.ajax({
+                    url: `/api/admin/promotions/${promoId}/toggle-status`,
+                    type: 'PUT',
+                    success: function(res) {
+                        const label = checkbox.closest('.form-check').find('.form-check-label');
+                        label.text(res.currentStatus);
+                        const isActive = res.currentStatusInt === 1; // 1 = HoatDong
+                        if (isActive) {
+                            label.removeClass('text-danger').addClass('text-success');
+                            checkbox.prop('checked', true);
+                        } else {
+                            label.removeClass('text-success').addClass('text-danger');
+                            checkbox.prop('checked', false);
+                        }
+                    },
+                    error: function(jqXHR) {
+                        alert(jqXHR.responseJSON?.message || "Không thể chuyển đổi trạng thái khuyến mãi.");
+                        // Khôi phục trạng thái checkbox ban đầu
+                        checkbox.prop('checked', previousChecked);
+                    }
+                });
+            });
+
+            // 3. Xử lý Form Thêm mới / Sửa
             $('#createPromoForm').submit(function(e) {
                 e.preventDefault();
+                const editId = $('#promoModal').attr('data-edit-id');
+                const isEdit = !!editId;
 
-                // Lấy mảng các sản phẩm được chọn nếu chọn hình thức đa sản phẩm
                 let selectedProductIds = [];
                 if ($('#formPhamVi').val() === 'product') {
                     selectedProductIds = $('#formSanPhamIds').val() || [];
-                    if(selectedProductIds.length === 0) {
+                    if (selectedProductIds.length === 0) {
                         alert("Vui lòng chọn ít nhất một sản phẩm!");
                         return;
                     }
@@ -259,47 +336,108 @@
                     soLuongToiDa: parseInt($('#formSoLuongToiDa').val()),
                     ngayApDung: new Date($('#formNgayApDung').val()).toISOString(),
                     ngayKetThuc: new Date($('#formNgayKetThuc').val()).toISOString(),
-                    // Thu thập 3 trường mới nâng cấp
                     phamVi: $('#formPhamVi').val(),
                     danhMucId: $('#formDanhMucId').val() || null,
                     sanPhamIds: selectedProductIds
                 };
 
+                const url = isEdit ? `/api/admin/promotions/${editId}` : '/api/admin/promotions';
+                const method = isEdit ? 'PUT' : 'POST';
+
                 $.ajax({
-                    url: '/api/admin/promotions',
-                    type: 'POST',
+                    url: url,
+                    type: method,
                     contentType: 'application/json',
                     data: JSON.stringify(payload),
                     success: function() {
                         $('#promoModal').modal('hide');
+                        $('#promoModal').removeAttr('data-edit-id');
+                        $('#promoModal .modal-title').text('THIẾT LẬP CHƯƠNG TRÌNH KHUYẾN MÃI MỚI');
                         $('#createPromoForm')[0].reset();
-                        $('#formPhamVi').val('all').trigger('change'); // reset trạng thái ô chọn phạm vi
+                        $('#formPhamVi').val('all').trigger('change');
                         loadPromotions();
                     },
-                    error: function(err) {
-                        alert(err.responseJSON?.message || "Lỗi tạo chương trình ưu đãi.");
+                    error: function(jqXHR) {
+                        alert(jqXHR.responseJSON?.message || "Lỗi xử lý chương trình ưu đãi.");
                     }
                 });
             });
 
-            // 4. Xử lý xóa mã giảm giá (DELETE) kèm chặn ràng buộc từ Backend
+            // 4. Xử lý xóa mã giảm giá
             $(document).on('click', '.btn-delete-promo', function() {
                 const promoId = $(this).data('id');
-                if(!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn mã giảm giá này không?")) return;
+                if (!confirm("Bạn có chắc chắn muốn xóa vĩnh viễn mã giảm giá này không?")) return;
 
                 $.ajax({
                     url: `/api/admin/promotions/${promoId}`,
                     type: 'DELETE',
                     success: function(res) {
+                        alert(res.message);  // Thông báo thành công
                         loadPromotions();
                     },
-                    error: function(err) {
-                        // Hiện thông báo lỗi kinh tế nếu mã đã có người xài
-                        alert(err.responseJSON?.message || "Lỗi không thể xóa chương trình.");
+                    error: function(jqXHR) {
+                        alert(jqXHR.responseJSON?.message || "Lỗi không thể xóa chương trình.");
                     }
                 });
             });
+
+                    // 5. Xử lý nút Sửa
+        $(document).on('click', '.btn-edit-promo', function() {
+            const promoId = $(this).data('id');
+            $.get(`/api/admin/promotions/${promoId}`)
+                .done(function(promo) {
+                    $('#promoModal').attr('data-edit-id', promoId);
+                    $('#promoModal .modal-title').text('CHỈNH SỬA CHƯƠNG TRÌNH KHUYẾN MÃI');
+                    $('#formTen').val(promo.ten);
+                    $('#formMaCode').val(promo.maCode);
+                    $('#formMoTa').val(promo.moTa);
+                    $('#formLoaiGiamGia').val(promo.loaiGiamGia).trigger('change');
+                    $('#formGiaTriGiam').val(promo.giaTriGiam);
+                    $('#formGiamToiDa').val(promo.giamToiDa);
+                    $('#formGiaTriToiThieuApDung').val(promo.giaTriToiThieuApDung);
+                    $('#formSoLuongToiDa').val(promo.soLuongToiDa);
+                    $('#formNgayApDung').val(new Date(promo.ngayApDung).toISOString().slice(0, 16));
+                    $('#formNgayKetThuc').val(new Date(promo.ngayKetThuc).toISOString().slice(0, 16));
+
+                    // Xác định phạm vi và điền dữ liệu
+                    if (promo.danhMucId) {
+                        // Phạm vi danh mục
+                        $('#formPhamVi').val('category').trigger('change');
+                        $('#formDanhMucId').val(promo.danhMucId);
+                    } else if (promo.danhSachSanPhamApDung && promo.danhSachSanPhamApDung.length > 0) {
+                        // Phạm vi sản phẩm
+                        $('#formPhamVi').val('product').trigger('change');
+                        const productIds = promo.danhSachSanPhamApDung.map(p => p.sanPhamId);
+                        $('#formSanPhamIds').val(productIds);
+                    } else {
+                        // Toàn sàn hoặc không xác định
+                        $('#formPhamVi').val('all').trigger('change');
+                    }
+
+                    $('#promoModal').modal('show');
+                })
+                .fail(function(jqXHR) {
+                    alert(jqXHR.responseJSON?.message || "Lỗi tải thông tin khuyến mãi.");
+                });
+        });
+
+            // 6. Xử lý phân trang (giữ nguyên)
+            $(document).on('click', '#pagination .page-link', function(e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                if (page && page !== currentPage && page >= 1 && page <= Math.ceil(allPromotions.length / pageSize)) {
+                    currentPage = page;
+                    renderPromotionsPage();
+                    $('html, body').animate({ scrollTop: $('#promoTableBody').offset().top - 100 }, 200);
+                }
+            });
         });
     </script>
-
+    <style>
+        .form-check-label {
+            white-space: nowrap;
+            min-width: 100px; /* <-- THÊM DÒNG NÀY để tránh cột bị nở */
+            display: inline-block;
+        }
+    </style>
 }

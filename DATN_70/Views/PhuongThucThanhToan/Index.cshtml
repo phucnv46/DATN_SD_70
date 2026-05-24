@@ -129,29 +129,19 @@
                 <div class="sticky-top" style="top: 100px; z-index: 1;">
                     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                         <h2 class="fs-5 fw-bold mb-3 text-dark"><i class="bi bi-basket3-fill text-dark me-2"></i>Tóm tắt đơn hàng</h2>
-                        <div id="checkoutItems" class="overflow-y-auto mb-3 border-bottom pb-2" style="max-height: 240px; display: grid; gap: 12px;"></div>
+                        <div id="checkoutItems" class="overflow-y-auto mb-3 border-bottom pb-2" style="max-height: 260px; overflow-y: auto;"></div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold small text-secondary" for="checkoutCouponInput">Mã giảm giá (Coupon)</label>
+                        @* <div class="mb-4">
+                            <label class="form-label fw-semibold small text-secondary">Mã giảm giá (Coupon)</label>
                             <div class="input-group">
                                 <input id="checkoutCouponInput" type="text" class="form-control rounded-start-3 shadow-none" placeholder="Nhập mã ưu đãi..." />
-                                <button id="applyCouponButton" type="button" class="btn btn-dark rounded-end-3 fw-bold px-3">Áp dụng</button>
+                                <button id="addCouponButton" type="button" class="btn btn-dark rounded-end-3 fw-bold px-3">Thêm mã</button>
                             </div>
-                            <div id="couponSuggestions" class="mt-2 d-flex flex-wrap gap-2">
-                                @if (ViewBag.DbCoupons != null)
-                                {
-                                    foreach (var coupon in ViewBag.DbCoupons)
-                                    {
-                                        var textGiamGia = coupon.LoaiGiamGia == 1 ? $"-{coupon.GiaTriGiam}%" : $"-{coupon.GiaTriGiam.ToString("N0")}đ";
-                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                                                onclick="document.getElementById('checkoutCouponInput').value='@coupon.MaCode'"
-                                                title="@coupon.MoTa">
-                                            <i class="bi bi-ticket-perforated me-1"></i> @coupon.MaCode (@textGiamGia)
-                                        </button>
-                                    }
-                                }
-                            </div>
-                        </div>
+                            <!-- Danh sách mã đã thêm -->
+                            <div id="appliedCoupons" class="mt-2 d-flex flex-column gap-1"></div>
+                            <!-- Danh sách mã khả dụng gợi ý -->
+                            <div id="couponSuggestions" class="mt-2 d-flex flex-wrap gap-2"></div>
+                        </div> *@
 
                         <div class="d-flex flex-column gap-2 border-bottom pb-3 mb-3 small">
                             <div class="d-flex justify-content-between align-items-center">
@@ -167,7 +157,7 @@
                                 <span id="checkoutDiscount" class="text-success fw-bold">- 0 đ</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted">Thuế VAT (10%):</span>
+                                <span class="text-muted">Thuế VAT:</span>
                                 <span id="checkoutVAT" class="text-dark fw-medium">0 đ</span>
                             </div>
                         </div>
@@ -262,6 +252,7 @@
         window.checkoutBootstrap = @Html.Raw(bootstrapJson);
         let cachedProvinces = [];
         let currentShippingFee = 0;
+
         document.addEventListener("DOMContentLoaded", function () {
             const data = window.checkoutBootstrap;
             const provinceSelect = document.getElementById("checkoutProvince");
@@ -339,15 +330,27 @@
                 } else {
                     shippingContainer.innerHTML = `<div class="p-3 bg-light border rounded-3 text-danger small fw-bold text-center">Vui lòng chọn Tỉnh/Thành để xem phí ship.</div>`;
                 }
+
                 currentShippingFee = finalShip;
                 document.getElementById("checkoutShipping").innerText = finalShip === 0 ? "Miễn phí" : `${finalShip.toLocaleString('vi-VN')} đ`;
+
+                // Tính VAT từ các item đã render (mỗi item có data-vat-rate và giá)
+                let totalVat = 0;
+                document.querySelectorAll('.checkout-item').forEach(item => {
+                    const vatRate = parseFloat(item.getAttribute('data-vat-rate')) || 10;
+                    const priceText = item.querySelector('.price-sale').innerText;
+                    const itemTotal = parseInt(priceText.replace(/[^0-9]/g, "")) || 0;
+                    totalVat += Math.round(itemTotal * vatRate / 100);
+                });
+                document.getElementById("checkoutVAT").innerText = `${totalVat.toLocaleString('vi-VN')} đ`;
+
                 const discountText = document.getElementById("checkoutDiscount").innerText;
                 const discount = parseInt(discountText.replace(/[^0-9]/g, "")) || 0;
-                                const vat = Math.round(subtotal * 0.1);
-        document.getElementById("checkoutVAT").innerText = `${vat.toLocaleString('vi-VN')} đ`;
-        document.getElementById("checkoutGrandTotal").innerText = `${(subtotal + finalShip + vat - discount).toLocaleString('vi-VN')} đ`;
+
+                document.getElementById("checkoutGrandTotal").innerText = `${(subtotal + finalShip + totalVat - discount).toLocaleString('vi-VN')} đ`;
             }
 
+            // Đổ text thông tin cá nhân vào form (Auto-fill)
             if (data) {
                 if (data.fullName) document.getElementById("checkoutFullName").value = data.fullName;
                 if (data.email) document.getElementById("checkoutEmail").value = data.email;
@@ -355,6 +358,7 @@
                 if (data.street) document.getElementById("checkoutStreet").value = data.street;
             }
 
+            // Logic thay đổi địa chỉ thông qua Popup (Modal)
             const addressCards = document.querySelectorAll("#savedAddressList .saved-address-card");
             addressCards.forEach(card => {
                 card.addEventListener("click", function () {
@@ -389,7 +393,7 @@
             const container = document.getElementById('checkoutItems');
             if (container && cartState.items.length > 0) {
                 container.innerHTML = cartState.items.map(item => `
-                    <article class="checkout-item d-flex align-items-center gap-3">
+                    <article class="checkout-item d-flex align-items-center gap-3" data-vat-rate="${item.vatRate || 10}">
                         <div class="thumb-wrap" style="width: 60px; height: 60px; flex-shrink: 0;">
                             <img src="${item.hinhAnhUrl || item.imageUrl || '/images/default-product.png'}"
                                  onerror="this.src='/images/default-product.png'"
@@ -409,7 +413,116 @@
                 if (pSelect && pSelect.value) pSelect.dispatchEvent(new Event('change'));
             }
         }
+                let appliedCoupons = []; // danh sách mã đã thêm (mảng object từ API)
 
+        // // Load danh sách mã khả dụng khi trang load
+        // async function loadAvailableCoupons() {
+        //     try {
+        //         const res = await fetch('/api/cart/available-coupons');
+        //         if (!res.ok) return;
+        //         const coupons = await res.json();
+        //         renderCouponSuggestions(coupons);
+        //     } catch (e) { console.error(e); }
+        // }
+
+        // // Hiển thị các mã gợi ý
+        // function renderCouponSuggestions(coupons) {
+        //     const container = document.getElementById('couponSuggestions');
+        //     if (!coupons.length) {
+        //         container.innerHTML = '<span class="text-muted small">Không có mã giảm giá khả dụng.</span>';
+        //         return;
+        //     }
+        //     container.innerHTML = coupons.map(c => {
+        //         const desc = c.loaiGiamGia === 1 ? `-${c.giaTriGiam}%` : `-${Number(c.giaTriGiam).toLocaleString('vi-VN')}đ`;
+        //         return `<button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 coupon-suggest-btn"
+        //                        data-code="${c.maCode}" title="${c.moTa}">
+        //                     <i class="bi bi-ticket-perforated me-1"></i> ${c.maCode} (${desc})
+        //                 </button>`;
+        //     }).join('');
+        // }
+
+        // // Thêm mã vào danh sách đã áp dụng
+        // function addCoupon(coupon) {
+        //     if (appliedCoupons.some(c => c.maCode === coupon.maCode)) {
+        //         alert('Mã này đã được thêm rồi.');
+        //         return;
+        //     }
+        //     appliedCoupons.push(coupon);
+        //     renderAppliedCoupons();
+        //     recalculateTotal();
+        // }
+
+        // // Xóa mã khỏi danh sách
+        // function removeCoupon(maCode) {
+        //     appliedCoupons = appliedCoupons.filter(c => c.maCode !== maCode);
+        //     renderAppliedCoupons();
+        //     recalculateTotal();
+        // }
+
+        // // Hiển thị danh sách mã đã thêm
+        // function renderAppliedCoupons() {
+        //     const container = document.getElementById('appliedCoupons');
+        //     container.innerHTML = appliedCoupons.map(c => `
+        //         <div class="d-flex align-items-center justify-content-between bg-light rounded-3 px-3 py-2">
+        //             <div>
+        //                 <strong class="small">${c.maCode}</strong>
+        //                 <span class="text-muted small ms-2">${c.ten}</span>
+        //             </div>
+        //             <button type="button" class="btn btn-sm text-danger p-0" onclick="removeCoupon('${c.maCode}')">
+        //                 <i class="bi bi-x-circle"></i>
+        //             </button>
+        //         </div>
+        //     `).join('');
+        // }
+
+        // // Tính lại tổng tiền khi thêm/xóa mã
+        // function recalculateTotal() {
+        //     const subtotal = parseInt(document.getElementById('checkoutSubtotal').innerText.replace(/[^0-9]/g, "")) || 0;
+        //     let totalDiscount = 0;
+        //     appliedCoupons.forEach(c => {
+        //         if (c.loaiGiamGia === 1) {
+        //             const giam = subtotal * (c.giaTriGiam / 100);
+        //             totalDiscount += c.giamToiDa > 0 ? Math.min(giam, c.giamToiDa) : giam;
+        //         } else {
+        //             totalDiscount += c.giaTriGiam;
+        //         }
+        //     });
+        //     document.getElementById('checkoutDiscount').innerText = '-' + totalDiscount.toLocaleString('vi-VN') + ' đ';
+        //     const pSelect = document.getElementById('checkoutProvince');
+        //     if (pSelect && pSelect.value) pSelect.dispatchEvent(new Event('change'));
+        // }
+
+        // // Sự kiện khi bấm nút "Thêm mã"
+        // document.getElementById('addCouponButton').addEventListener('click', async function() {
+        //     const code = document.getElementById('checkoutCouponInput').value.trim();
+        //     if (!code) return;
+        //     try {
+        //         const res = await fetch('/api/cart/available-coupons');
+        //         const coupons = await res.json();
+        //         const found = coupons.find(c => c.maCode.toUpperCase() === code.toUpperCase());
+        //         if (found) {
+        //             addCoupon(found);
+        //             document.getElementById('checkoutCouponInput').value = '';
+        //         } else {
+        //             alert('Mã giảm giá không hợp lệ hoặc không áp dụng được cho giỏ hàng.');
+        //         }
+        //     } catch (e) { console.error(e); }
+        // });
+
+        // // Sự kiện khi bấm vào mã gợi ý
+        // document.getElementById('couponSuggestions').addEventListener('click', function(e) {
+        //     const btn = e.target.closest('.coupon-suggest-btn');
+        //     if (!btn) return;
+        //     const code = btn.dataset.code;
+        //     // Tìm thông tin đầy đủ từ API
+        //     fetch('/api/cart/available-coupons').then(res => res.json()).then(coupons => {
+        //         const found = coupons.find(c => c.maCode === code);
+        //         if (found) addCoupon(found);
+        //     });
+        // });
+
+        // // Load khi trang sẵn sàng
+        // loadAvailableCoupons();
         // Gọi ngay khi script chạy (trang load)
         renderCheckoutItems();
 
@@ -436,11 +549,10 @@
                 return;
             }
 
-        isPlacingOrder = true;
-        const btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang đặt hàng...';
-        isPlacingOrder = true;
+            isPlacingOrder = true;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang đặt hàng...';
 
             try {
                 const formData = { fullName, phone, street, province, district, ward, addressId, khachHangId, paymentMethod };
@@ -464,7 +576,8 @@
                             diaChiGiaoHang: `${street}, ${ward}, ${district}, ${province}`,
                             items: cartItems,
                             paymentMethod: 'QR',
-                            shippingFee: currentShippingFee
+                            shippingFee: currentShippingFee,
+                            // voucherCodes: appliedCoupons.map(c => c.maCode)
                         })
                     });
                     const orderResult = await orderResponse.json();
@@ -476,18 +589,18 @@
                         body: JSON.stringify({ hoaDonID: orderResult.hoaDonID })
                     });
                     const paymentResult = await paymentResponse.json();
-                            if (paymentResult.success) {
-            // Xóa giỏ hàng sau khi tạo đơn QR
-            try {
-                await window.winterCart.clearCartOnServer();
-                window.winterCart.saveCartState({ items: [], note: "", couponCode: "", shippingCode: "vnpost", paymentCode: "cod" });
-            } catch (e) { console.error(e); }
+                    if (paymentResult.success) {
+                        // Xóa giỏ hàng sau khi tạo đơn QR
+                        try {
+                            await window.winterCart.clearCartOnServer();
+                            window.winterCart.saveCartState({ items: [], note: "", couponCode: "", shippingCode: "vnpost", paymentCode: "cod" });
+                        } catch (e) { console.error(e); }
 
-            sessionStorage.setItem('pendingPayOSOrderCode', paymentResult.orderCode);
-            sessionStorage.setItem('pendingHoaDonID', orderResult.hoaDonID);
-            document.getElementById('webPayOSIframe').src = paymentResult.checkoutUrl;
-            new bootstrap.Modal(document.getElementById('webQrModal')).show();
-        } else {
+                        sessionStorage.setItem('pendingPayOSOrderCode', paymentResult.orderCode);
+                        sessionStorage.setItem('pendingHoaDonID', orderResult.hoaDonID);
+                        document.getElementById('webPayOSIframe').src = paymentResult.checkoutUrl;
+                        new bootstrap.Modal(document.getElementById('webQrModal')).show();
+                    } else {
                         alert("Lỗi tạo link thanh toán: " + paymentResult.message);
                     }
                 } else {
@@ -502,18 +615,19 @@
                             diaChiGiaoHang: `${street}, ${ward}, ${district}, ${province}`,
                             items: cartItems,
                             paymentMethod: 'COD',
-                            shippingFee: currentShippingFee
+                            shippingFee: currentShippingFee,
+                            // voucherCodes: appliedCoupons.map(c => c.maCode)
                         })
                     });
                     const orderResult = await orderResponse.json();
-                            if (orderResult.hoaDonID) {
-            // Xóa giỏ hàng sau khi đặt COD thành công
-            try {
-                await window.winterCart.clearCartOnServer();
-                window.winterCart.saveCartState({ items: [], note: "", couponCode: "", shippingCode: "vnpost", paymentCode: "cod" });
-            } catch (e) { console.error(e); }
-            window.location.href = `/Home/Success?orderId=${orderResult.hoaDonID}`;
-        } else {
+                    if (orderResult.hoaDonID) {
+                        // Xóa giỏ hàng sau khi đặt COD thành công
+                        try {
+                            await window.winterCart.clearCartOnServer();
+                            window.winterCart.saveCartState({ items: [], note: "", couponCode: "", shippingCode: "vnpost", paymentCode: "cod" });
+                        } catch (e) { console.error(e); }
+                        window.location.href = `/Home/Success?orderId=${orderResult.hoaDonID}`;
+                    } else {
                         alert("Đặt hàng thất bại.");
                     }
                 }
@@ -526,7 +640,8 @@
             }
         });
 
-            document.getElementById('btnCancelPayment').addEventListener('click', function() {
+        // XỬ LÝ NÚT "ĐỂ SAU" TRONG POPUP QR
+        document.getElementById('btnCancelPayment').addEventListener('click', function() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('webQrModal'));
             if (modal) modal.hide();
             document.getElementById('webPayOSIframe').src = '';
@@ -555,7 +670,8 @@
                 sessionStorage.removeItem('checkoutFormData');
             }
         });
-                // Lắng nghe sự kiện giỏ hàng sẵn sàng từ site.js
+
+        // Lắng nghe sự kiện giỏ hàng sẵn sàng từ site.js
         document.addEventListener('winterCartChanged', function(e) {
             renderCheckoutItems(e.detail);
         });

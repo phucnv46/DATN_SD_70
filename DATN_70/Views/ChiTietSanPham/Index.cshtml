@@ -35,9 +35,32 @@
                         </h1>
 
                         <div class="d-flex align-items-center gap-3 my-3 border-bottom pb-3">
-                            <strong id="detailPrice" class="fs-2 text-danger fw-extrabold">0 đ</strong>
-                            <span id="detailOriginalPrice" class="text-muted text-decoration-line-through small fs-5"></span>
-                            <span id="detailDiscountBadge" class="badge bg-dark rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size: 0.75rem;"></span>
+                            <strong id="detailPrice" class="fs-2 text-danger fw-extrabold">Đang tải giá...</strong>                            <span id="detailOriginalPrice" class="text-muted text-decoration-line-through small fs-5"></span>
+                            <div class="d-flex align-items-center gap-3 my-3 border-bottom pb-3">
+                                <strong id="detailPrice" class="fs-2 text-danger fw-extrabold"></strong>                                <span id="detailOriginalPrice" class="text-muted text-decoration-line-through small fs-5"></span>
+
+                                <span id="detailDiscountBadge" class="badge bg-dark rounded-pill px-3 py-2 fw-bold text-uppercase" style="font-size: 0.75rem;"></span>
+
+                                <script>
+                                    document.addEventListener("DOMContentLoaded", function() {
+                                        const badge = document.getElementById("detailDiscountBadge");
+                                        if(badge) {
+                                            // Theo dõi sự thay đổi nội dung do site.js bơm vào
+                                            const observer = new MutationObserver(function() {
+                                                let text = badge.innerText;
+                                                // Nếu phát hiện số thập phân dài (có dấu chấm)
+                                                if (text && text.includes('.')) {
+                                                    observer.disconnect(); // Tạm tắt máy quét để tránh lặp vô tận
+                                                    // Chặt bỏ toàn bộ phần sau dấu chấm và ghép lại đuôi %
+                                                    badge.innerText = text.split('.')[0] + '%';
+                                                    observer.observe(badge, { childList: true }); // Bật máy quét lại
+                                                }
+                                            });
+                                            observer.observe(badge, { childList: true });
+                                        }
+                                    });
+                                </script>
+                            </div>
                         </div>
 
                         <div id="detailVariantSummary" class="alert alert-secondary border-0 rounded-3 small text-muted py-2 mb-4">

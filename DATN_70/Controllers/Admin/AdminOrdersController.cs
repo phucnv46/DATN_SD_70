@@ -112,6 +112,7 @@ public sealed class AdminOrdersController : ControllerBase
             ChiTietSanPham = order.HoaDonChiTiets.Select(d => new AdminOrderItemResponse
             {
                 ChiTietSanPhamId = d.ChiTietSanPhamID,
+                SanPhamID = d.ChiTietSanPham?.SanPham?.SanPhamID ?? "N/A",
                 TenSanPham = d.ChiTietSanPham?.SanPham?.Ten ?? "Sản phẩm đã bị xóa",
                 KichCo = d.ChiTietSanPham?.KichCoID ?? "N/A",
                 MauSac = d.ChiTietSanPham?.MauID ?? "N/A",
@@ -466,6 +467,7 @@ public sealed class AdminOrderAddressInfo
 public sealed class AdminOrderItemResponse
 {
     public string ChiTietSanPhamId { get; set; } = string.Empty;
+    public string SanPhamID { get; set; } = string.Empty;
     public string TenSanPham { get; set; } = string.Empty;
     public string KichCo { get; set; } = string.Empty;
     public string MauSac { get; set; } = string.Empty;

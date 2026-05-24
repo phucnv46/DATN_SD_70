@@ -19,4 +19,5 @@ public sealed class ProductListItemResponse
     public int LoaiGiamGia { get; internal set; }
     public decimal GiaTriGiam { get; internal set; }
     public decimal GiamToiDa { get; internal set; }
+    public string DanhMuc { get; set; } = string.Empty;
 }

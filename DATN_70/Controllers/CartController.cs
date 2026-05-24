@@ -164,7 +164,18 @@ public sealed class CartController : ControllerBase
 
         return Ok(await BuildCartResponseAsync(cart.GioHangID, cancellationToken));
     }
-
+    private async Task<KhuyenMai?> GetActiveGlobalPromoAsync(CancellationToken cancellationToken)
+    {
+        var now = DateTime.Now;
+        return await _dbContext.KhuyenMais
+            .FirstOrDefaultAsync(k =>
+                k.MaCode == null &&
+                k.TrangThai == Models.Enums.Enums.TrangThaiHoatDong.HoatDong &&
+                k.NgayApDung <= now && k.NgayKetThuc >= now &&
+                (k.SoLuongToiDa == 0 || k.SoLuongDaDung < k.SoLuongToiDa) &&
+                !k.KhuyenMaiSanPhams.Any(),
+            cancellationToken);
+    }
     [HttpDelete]
     public async Task<ActionResult<CartResponse>> ClearCart(CancellationToken cancellationToken)
     {
@@ -223,41 +234,91 @@ public sealed class CartController : ControllerBase
     {
         var items = await _dbContext.ChiTietGioHangs
             .AsNoTracking()
-            .Include(item => item.ChiTietSanPham)
-                .ThenInclude(item => item.SanPham)
-            .Include(item => item.ChiTietSanPham)
-                .ThenInclude(item => item.Mau)
-            .Include(item => item.ChiTietSanPham)
-                .ThenInclude(item => item.KichCo)
-            .Where(item => item.GioHangID == cartId)
-            .OrderBy(item => item.ChiTietSanPham.SanPham.Ten)
-            .ThenBy(item => item.ChiTietSanPham.Mau.Ten)
-            .ThenBy(item => item.ChiTietSanPham.KichCo.Ten)
+            .Include(i => i.ChiTietSanPham)
+                .ThenInclude(i => i.SanPham)
+            .Include(i => i.ChiTietSanPham)
+                .ThenInclude(i => i.Mau)
+            .Include(i => i.ChiTietSanPham)
+                .ThenInclude(i => i.KichCo)
+            .Where(i => i.GioHangID == cartId)
+            .OrderBy(i => i.ChiTietSanPham.SanPham.Ten)
+            .ThenBy(i => i.ChiTietSanPham.Mau.Ten)
+            .ThenBy(i => i.ChiTietSanPham.KichCo.Ten)
             .ToListAsync(cancellationToken);
 
+        // Lấy khuyến mãi toàn sàn
+        var globalPromo = await GetActiveGlobalPromoAsync(cancellationToken);
+
+        // Lấy khuyến mãi theo sản phẩm
         var discounts = await GetActiveDiscountsAsync(
-            items.Select(item => item.ChiTietSanPham.SanPhamID).Distinct().ToList(),
+            items.Select(i => i.ChiTietSanPham.SanPhamID).Distinct().ToList(),
             cancellationToken);
 
         return new CartResponse
         {
-            Items = items.Select(item => new CartItemResponse
+            Items = items.Select(item =>
             {
-                SanPhamID = item.ChiTietSanPham.SanPhamID,
-                ChiTietSanPhamID = item.ChiTietSanPhamID,
-                TenSanPham = item.ChiTietSanPham.SanPham.Ten,
-                PhanLoai = $"{item.ChiTietSanPham.Mau.Ten} / {item.ChiTietSanPham.KichCo.Ten.Replace("Size ", string.Empty)}",
-                SoLuong = item.SoLuong,
-                DonGia = ApplyDiscount(item.ChiTietSanPham.GiaNiemYet, discounts.GetValueOrDefault(item.ChiTietSanPham.SanPhamID)),
-                TonKho = item.ChiTietSanPham.SoLuongTonKho
+                var basePrice = item.ChiTietSanPham.GiaNiemYet;
+                var vatRate = item.ChiTietSanPham.SanPham.MucVAT;
+
+                // Ưu tiên khuyến mãi toàn sàn, nếu không có thì dùng khuyến mãi sản phẩm
+                // Lấy khuyến mãi riêng nếu có
+                var productPromo = discounts.GetValueOrDefault(item.ChiTietSanPham.SanPhamID);
+                // Chọn khuyến mãi cho giá thấp nhất
+                KhuyenMai? bestPromo = null;
+                decimal bestPrice = basePrice;
+                if (globalPromo != null)
+                {
+                    var globalPrice = ApplyDiscount(basePrice, globalPromo);
+                    if (globalPrice < bestPrice) { bestPrice = globalPrice; bestPromo = globalPromo; }
+                }
+                if (productPromo != null)
+                {
+                    var productPrice = ApplyDiscount(basePrice, productPromo);
+                    if (productPrice < bestPrice) { bestPrice = productPrice; bestPromo = productPromo; }
+                }
+                var finalPrice = bestPrice; // dùng cho DonGia
+                
+
+                return new CartItemResponse
+                {
+                    SanPhamID = item.ChiTietSanPham.SanPhamID,
+                    ChiTietSanPhamID = item.ChiTietSanPhamID,
+                    TenSanPham = item.ChiTietSanPham.SanPham.Ten,
+                    PhanLoai = $"{item.ChiTietSanPham.Mau.Ten} / {item.ChiTietSanPham.KichCo.Ten.Replace("Size ", string.Empty)}",
+                    SoLuong = item.SoLuong,
+                    DonGia = finalPrice,          // giá sau khuyến mãi
+                    GiaGoc = basePrice,           // giá gốc để hiển thị nếu cần
+                    VatRate = vatRate,            // để tính VAT
+                    TonKho = item.ChiTietSanPham.SoLuongTonKho
+                };
             }).ToList()
         };
     }
 
     private async Task<decimal> GetCurrentUnitPriceAsync(ChiTietSanPham variant, CancellationToken cancellationToken)
     {
+        var basePrice = variant.GiaNiemYet;
+        decimal bestPrice = basePrice;
+
+        // Kiểm tra khuyến mãi riêng
         var discounts = await GetActiveDiscountsAsync([variant.SanPhamID], cancellationToken);
-        return ApplyDiscount(variant.GiaNiemYet, discounts.GetValueOrDefault(variant.SanPhamID));
+        var productPromo = discounts.GetValueOrDefault(variant.SanPhamID);
+        if (productPromo != null)
+        {
+            var productPrice = ApplyDiscount(basePrice, productPromo);
+            if (productPrice < bestPrice) bestPrice = productPrice;
+        }
+
+        // Kiểm tra khuyến mãi toàn sàn
+        var globalPromo = await GetActiveGlobalPromoAsync(cancellationToken);
+        if (globalPromo != null)
+        {
+            var globalPrice = ApplyDiscount(basePrice, globalPromo);
+            if (globalPrice < bestPrice) bestPrice = globalPrice;
+        }
+
+        return bestPrice;
     }
 
     // --- HÀM LẤY KHUYẾN MÃI ĐÃ ĐƯỢC CẬP NHẬT ĐỂ LẤY TOÀN BỘ OBJECT KHUYENMAI ---
@@ -321,5 +382,88 @@ public sealed class CartController : ControllerBase
 
         // Chống âm tiền nếu số tiền giảm lớn hơn cả giá sản phẩm, sau đó làm tròn
         return finalPrice < 0 ? 0 : Math.Round(finalPrice, 0, MidpointRounding.AwayFromZero);
+    }
+    [HttpGet("available-coupons")]
+    public async Task<IActionResult> GetAvailableCoupons(CancellationToken cancellationToken)
+    {
+        var account = await GetCurrentAccountAsync(cancellationToken);
+        if (account is null)
+            return Unauthorized(new { message = "Vui lòng đăng nhập." });
+
+        var cart = await _dbContext.GioHangs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.TaiKhoanID == account.TaiKhoanID, cancellationToken);
+
+        if (cart is null)
+            return Ok(new List<object>());
+
+        // Lấy danh sách chi tiết sản phẩm trong giỏ hàng
+        var cartItems = await _dbContext.ChiTietGioHangs
+            .AsNoTracking()
+            .Include(ci => ci.ChiTietSanPham)
+                .ThenInclude(ct => ct.SanPham)
+            .Where(ci => ci.GioHangID == cart.GioHangID)
+            .Select(ci => new
+            {
+                ci.ChiTietSanPhamID,
+                ci.ChiTietSanPham.SanPhamID,
+                ci.ChiTietSanPham.SanPham.DanhMucID,
+                ci.SoLuong,
+                ci.ChiTietSanPham.GiaNiemYet
+            })
+            .ToListAsync(cancellationToken);
+
+        if (!cartItems.Any())
+            return Ok(new List<object>());
+
+        // Lấy tất cả voucher loại 2 (có MaCode) đang hoạt động
+        var now = DateTime.Now;
+        var allVouchers = await _dbContext.KhuyenMais
+            .AsNoTracking()
+            .Where(k => k.MaCode != null
+                        && k.TrangThai == Models.Enums.Enums.TrangThaiHoatDong.HoatDong
+                        && k.NgayApDung <= now && k.NgayKetThuc >= now
+                        && (k.SoLuongToiDa == 0 || k.SoLuongDaDung < k.SoLuongToiDa))
+            .ToListAsync(cancellationToken);
+
+        // Lọc voucher khả dụng: có phạm vi bao phủ ít nhất một sản phẩm trong giỏ
+        var availableCoupons = new List<object>();
+        foreach (var voucher in allVouchers)
+        {
+            bool isApplicable = false;
+
+            // Voucher toàn sàn có mã (không ràng buộc sản phẩm)
+            if (!voucher.KhuyenMaiSanPhams.Any() && string.IsNullOrEmpty(voucher.DanhMucID))
+            {
+                isApplicable = true;
+            }
+            // Voucher theo danh mục
+            else if (!string.IsNullOrEmpty(voucher.DanhMucID))
+            {
+                isApplicable = cartItems.Any(ci => ci.DanhMucID == voucher.DanhMucID);
+            }
+            // Voucher theo sản phẩm cụ thể
+            else if (voucher.KhuyenMaiSanPhams.Any())
+            {
+                var applicableProductIds = voucher.KhuyenMaiSanPhams.Select(ksp => ksp.SanPhamID).ToHashSet();
+                isApplicable = cartItems.Any(ci => applicableProductIds.Contains(ci.SanPhamID));
+            }
+
+            if (isApplicable)
+            {
+                availableCoupons.Add(new
+                {
+                    maCode = voucher.MaCode,
+                    ten = voucher.Ten,
+                    moTa = voucher.MoTa ?? "",
+                    loaiGiamGia = (int)voucher.LoaiGiamGia,
+                    giaTriGiam = voucher.GiaTriGiam,
+                    giamToiDa = voucher.GiamToiDa,
+                    giaTriToiThieuApDung = voucher.GiaTriToiThieuApDung
+                });
+            }
+        }
+
+        return Ok(availableCoupons);
     }
 }

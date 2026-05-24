@@ -27,24 +27,88 @@
     </ul>
 
     <div class="tab-content" id="attributeTabsContent">
+        <!-- Tab Danh mục -->
         <div class="tab-pane fade show active" id="tab-categories" role="tabpanel">
             <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="categories"><i class="bi bi-plus-circle me-1"></i>Thêm danh mục</button></div>
-            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Danh Mục</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-categories-body"></tbody></table></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th style="width: 50px;">STT</th><th>Mã ID</th><th>Tên Danh Mục</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead>
+                    <tbody id="table-categories-body"></tbody>
+                </table>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span class="small text-muted">
+                            Hiển thị <span id="startRecord-categories">0</span>-<span id="endRecord-categories">0</span> trên tổng <span id="totalRecords-categories">0</span>
+                        </span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination-categories"></ul>
+                    </nav>
+                </div>
+            </div>
         </div>
 
+        <!-- Tab Thương hiệu -->
         <div class="tab-pane fade" id="tab-brands" role="tabpanel">
             <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="brands"><i class="bi bi-plus-circle me-1"></i>Thêm thương hiệu</button></div>
-            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Logo</th><th>Mã ID</th><th>Tên Thương Hiệu</th><th>Mô Tả ngắn</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-brands-body"></tbody></table></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th style="width: 50px;">STT</th><th>Logo</th><th>Mã ID</th><th>Tên Thương Hiệu</th><th>Mô Tả ngắn</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead>
+                    <tbody id="table-brands-body"></tbody>
+                </table>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span class="small text-muted">
+                            Hiển thị <span id="startRecord-brands">0</span>-<span id="endRecord-brands">0</span> trên tổng <span id="totalRecords-brands">0</span>
+                        </span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination-brands"></ul>
+                    </nav>
+                </div>
+            </div>
         </div>
 
+        <!-- Tab Màu sắc -->
         <div class="tab-pane fade" id="tab-colors" role="tabpanel">
             <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="colors"><i class="bi bi-plus-circle me-1"></i>Thêm màu sắc</button></div>
-            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Màu Sắc</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-colors-body"></tbody></table></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th style="width: 50px;">STT</th><th>Mã ID</th><th>Tên Màu Sắc</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead>
+                    <tbody id="table-colors-body"></tbody>
+                </table>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span class="small text-muted">
+                            Hiển thị <span id="startRecord-colors">0</span>-<span id="endRecord-colors">0</span> trên tổng <span id="totalRecords-colors">0</span>
+                        </span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination-colors"></ul>
+                    </nav>
+                </div>
+            </div>
         </div>
 
+        <!-- Tab Kích cỡ -->
         <div class="tab-pane fade" id="tab-sizes" role="tabpanel">
             <div class="d-flex justify-content-end mb-3"><button class="btn btn-dark btn-sm px-3 rounded-pill btn-add-attr" data-type="sizes"><i class="bi bi-plus-circle me-1"></i>Thêm kích cỡ</button></div>
-            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Mã ID</th><th>Tên Kích Cỡ</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead><tbody id="table-sizes-body"></tbody></table></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th style="width: 50px;">STT</th><th>Mã ID</th><th>Tên Kích Cỡ</th><th class="text-center" style="width:150px;">Hành Động</th></tr></thead>
+                    <tbody id="table-sizes-body"></tbody>
+                </table>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <span class="small text-muted">
+                            Hiển thị <span id="startRecord-sizes">0</span>-<span id="endRecord-sizes">0</span> trên tổng <span id="totalRecords-sizes">0</span>
+                        </span>
+                    </div>
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="pagination-sizes"></ul>
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -90,6 +154,11 @@
         $(document).ready(function() {
             $('#menu-attributes').addClass('active');
 
+            // Biến phân trang
+            let currentPages = { categories: 1, brands: 1, colors: 1, sizes: 1 };
+            const pageSize = 10;
+            let allData = { categories: [], brands: [], colors: [], sizes: [] };
+
             // Định nghĩa bản đồ cấu hình ánh xạ chuẩn khớp 100% với các API C# của bạn
             const config = {
                 categories: { url: '/api/admin/categories', idProp: 'danhMucID', nameProp: 'ten' },
@@ -98,53 +167,80 @@
                 sizes:      { url: '/api/admin/sizes',      idProp: 'kichCoID',  nameProp: 'ten' }
             };
 
-            // Hàm tải danh sách dùng chung cho cả 4 tab
+            // Hàm tải danh sách (chỉ gọi API, không render)
             function loadAttributeData(type) {
                 const targetBody = $(`#table-${type}-body`);
-                targetBody.html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang đồng bộ dữ liệu...</td></tr>');
+                targetBody.html('<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang đồng bộ dữ liệu...</td></tr>');
 
                 $.get(config[type].url, function(data) {
-                    let html = '';
-                    if(!data || data.length === 0) {
-                        const colspan = type === 'brands' ? 5 : 3;
-                        html = `<tr><td colspan="${colspan}" class="text-center py-4 text-muted">Chưa tồn tại dữ liệu.</td></tr>`;
-                    } else {
-                        data.forEach(item => {
-                            const id = item[config[type].idProp];
-                            const name = item[config[type].nameProp];
-
-                            if(type === 'brands') {
-                                html += `<tr>
-                                    <td><img src="${item.logoURL || '/images/default-logo.png'}" style="height:30px;width:30px;object-fit:cover;" class="rounded border bg-light" onerror="this.src='/images/default-logo.png'"/></td>
-                                    <td class="font-monospace small text-secondary fw-bold">${id}</td>
-                                    <td class="fw-bold text-dark">${name}</td>
-                                    <td class="text-muted small">${item.moTa || 'Không có mô tả'}</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-dark btn-edit-attr" data-type="brands" data-id="${id}" data-name="${name}" data-logo="${item.logoURL}" data-desc="${item.moTa}"><i class="bi bi-pencil-square"></i></button>
-                                        <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="brands" data-id="${id}"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                </tr>`;
-                            } else {
-                                html += `<tr>
-                                    <td class="font-monospace small text-secondary fw-bold">${id}</td>
-                                    <td class="fw-bold text-dark">${name}</td>
-                                    <td class="text-center">
-                                                <button class="btn btn-sm btn-outline-dark btn-edit-attr"
-                data-type="brands"
-                data-id="${id}"
-                data-name="${name}"
-                data-logo="${item.logoURL}"
-                data-desc="${item.moTa}">
-            <i class="bi bi-pencil-square"></i>
-        </button>
-                                        <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="${type}" data-id="${id}"><i class="bi bi-trash"></i></button>
-                                    </td>
-                                </tr>`;
-                            }
-                        });
-                    }
-                    targetBody.html(html);
+                    allData[type] = data;
+                    currentPages[type] = 1;
+                    renderAttributePage(type);
                 });
+            }
+
+            // Hàm render phân trang cho từng loại
+            function renderAttributePage(type) {
+                const data = allData[type];
+                const currentPage = currentPages[type];
+                const start = (currentPage - 1) * pageSize;
+                const end = Math.min(start + pageSize, data.length);
+                const pageData = data.slice(start, end);
+                const targetBody = $(`#table-${type}-body`);
+
+                let html = '';
+                if(pageData.length === 0) {
+                    const colspan = type === 'brands' ? 6 : 4;
+                    html = `<tr><td colspan="${colspan}" class="text-center py-4 text-muted">Chưa tồn tại dữ liệu.</td></tr>`;
+                } else {
+                    pageData.forEach((item, index) => {
+                        const stt = start + index + 1;
+                        const id = item[config[type].idProp];
+                        const name = item[config[type].nameProp];
+
+                        if(type === 'brands') {
+                            html += `<tr>
+                                <td class="text-center small text-muted">${stt}</td>
+                                <td><img src="${item.logoURL || '/images/default-logo.png'}" style="height:30px;width:30px;object-fit:cover;" class="rounded border bg-light" onerror="this.src='/images/default-logo.png'"/></td>
+                                <td class="font-monospace small text-secondary fw-bold">${id}</td>
+                                <td class="fw-bold text-dark">${name}</td>
+                                <td class="text-muted small">${item.moTa || 'Không có mô tả'}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-dark btn-edit-attr" data-type="brands" data-id="${id}" data-name="${name}" data-logo="${item.logoURL}" data-desc="${item.moTa}"><i class="bi bi-pencil-square"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="brands" data-id="${id}"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>`;
+                        } else {
+                            html += `<tr>
+                                <td class="text-center small text-muted">${stt}</td>
+                                <td class="font-monospace small text-secondary fw-bold">${id}</td>
+                                <td class="fw-bold text-dark">${name}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-dark btn-edit-attr" data-type="${type}" data-id="${id}" data-name="${name}"><i class="bi bi-pencil-square"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-attr" data-type="${type}" data-id="${id}"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>`;
+                        }
+                    });
+                }
+                targetBody.html(html);
+
+                // Cập nhật thông tin phân trang
+                $(`#startRecord-${type}`).text(data.length > 0 ? start + 1 : 0);
+                $(`#endRecord-${type}`).text(end);
+                $(`#totalRecords-${type}`).text(data.length);
+
+                // Tạo nút phân trang
+                const totalPages = Math.ceil(data.length / pageSize);
+                let paginationHtml = '';
+                if (totalPages > 1) {
+                    paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}" data-type="${type}">«</a></li>`;
+                    for (let i = 1; i <= totalPages; i++) {
+                        paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}" data-type="${type}">${i}</a></li>`;
+                    }
+                    paginationHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}" data-type="${type}">»</a></li>`;
+                }
+                $(`#pagination-${type}`).html(paginationHtml);
             }
 
             // Lắng nghe sự kiện chuyển gạt Tab để nạp dữ liệu động chống quá tải
@@ -172,124 +268,124 @@
                     $('#modalAttrTitle').text('THÊM THƯƠNG HIỆU MỚI'); $('#lblAttrName').text('Tên Thương Hiệu *');
                     $('.div-brand-only').removeClass('d-none');
                 }
-                
+
                 $('#attrModal').modal('show');
             });
 
-                    // MỞ MODAL ĐIỀU CHỈNH THÔNG TIN (EDIT THUỘC TÍNH)
-        $(document).on('click', '.btn-edit-attr', function() {
-            const type = $(this).data('type');
-            const id = $(this).data('id');
-            const name = $(this).data('name');
+            // MỞ MODAL ĐIỀU CHỈNH THÔNG TIN (EDIT THUỘC TÍNH)
+            $(document).on('click', '.btn-edit-attr', function() {
+                const type = $(this).data('type');
+                const id = $(this).data('id');
+                const name = $(this).data('name');
 
-            $('#attrForm')[0].reset();
-            $('#attrId').val(id);
-            $('#attrActionType').val(type);
-            $('#attrName').val(name);
+                $('#attrForm')[0].reset();
+                $('#attrId').val(id);
+                $('#attrActionType').val(type);
+                $('#attrName').val(name);
 
-            // Ẩn toàn bộ các trường mở rộng của thương hiệu mặc định, reset khung ảnh preview
-            $('.div-brand-only').addClass('d-none');
-            $('#divBrandLogoPreview').addClass('d-none');
-            $('#imgBrandLogoPreview').attr('src', '');
+                // Ẩn toàn bộ các trường mở rộng của thương hiệu mặc định, reset khung ảnh preview
+                $('.div-brand-only').addClass('d-none');
+                $('#divBrandLogoPreview').addClass('d-none');
+                $('#imgBrandLogoPreview').attr('src', '');
 
-            if (type === 'categories') {
-                $('#modalAttrTitle').text(`CẬP NHẬT DANH MỤC [${id}]`);
-                $('#lblAttrName').text('Tên Danh Mục *');
-            }
-            else if (type === 'colors') {
-                $('#modalAttrTitle').text(`CẬP NHẬT MÀU SẮC [${id}]`);
-                $('#lblAttrName').text('Tên Màu Sắc *');
-            }
-            else if (type === 'sizes') {
-                $('#modalAttrTitle').text(`CẬP NHẬT KÍCH CỠ [${id}]`);
-                $('#lblAttrName').text('Tên Kích Cỡ *');
-            }
-            else if (type === 'brands') {
-                $('#modalAttrTitle').text(`CẬP NHẬT THƯƠNG HIỆU [${id}]`);
-                $('#lblAttrName').text('Tên Thương Hiệu *');
-                $('.div-brand-only').removeClass('d-none');
-
-                // Điền mô tả cũ vào textarea
-                $('#attrBrandDesc').val($(this).data('desc'));
-
-                // BÓC ẢNH CŨ HIỂN THỊ LÊN: Lấy link ảnh từ data-logo gắn ở dòng của bảng dữ liệu
-                const oldLogoUrl = $(this).data('logo');
-                if (oldLogoUrl) {
-                    $('#imgBrandLogoPreview').attr('src', oldLogoUrl);
-                    $('#divBrandLogoPreview').removeClass('d-none'); // Mở đèn cho khung preview sáng lên
+                if (type === 'categories') {
+                    $('#modalAttrTitle').text(`CẬP NHẬT DANH MỤC [${id}]`);
+                    $('#lblAttrName').text('Tên Danh Mục *');
                 }
-            }
+                else if (type === 'colors') {
+                    $('#modalAttrTitle').text(`CẬP NHẬT MÀU SẮC [${id}]`);
+                    $('#lblAttrName').text('Tên Màu Sắc *');
+                }
+                else if (type === 'sizes') {
+                    $('#modalAttrTitle').text(`CẬP NHẬT KÍCH CỠ [${id}]`);
+                    $('#lblAttrName').text('Tên Kích Cỡ *');
+                }
+                else if (type === 'brands') {
+                    $('#modalAttrTitle').text(`CẬP NHẬT THƯƠNG HIỆU [${id}]`);
+                    $('#lblAttrName').text('Tên Thương Hiệu *');
+                    $('.div-brand-only').removeClass('d-none');
 
-            $('#attrModal').modal('show');
-        });
+                    // Điền mô tả cũ vào textarea
+                    $('#attrBrandDesc').val($(this).data('desc'));
 
-                    // XỬ LÝ LƯU DỮ LIỆU ĐỘNG (HỖ TRỢ CẢ THÊM MỚI VÀ CẬP NHẬT)
-        $('#attrForm').submit(function(e) {
-            e.preventDefault();
-            const type = $('#attrActionType').val();
-            const id = $('#attrId').val();
-
-            let url = config[type].url;
-            let method = 'POST';
-            if (id) {
-                url += `/${id}`;
-                method = 'PUT'; // Chuyển sang luồng sửa nếu có ID
-            }
-
-            // TẠO BIẾN GỬI DỮ LIỆU ĐA DẠNG (Bắt đầu phân tách luồng)
-            let sendData;
-            let contentTypeOption;
-            let processDataOption;
-
-            if (type === 'brands') {
-                // NẾU LÀ THƯƠNG HIỆU: Sử dụng FormData để bốc file ảnh gửi lên Backend [FromForm]
-                var formData = new FormData();
-                formData.append("Ten", $('#attrName').val());
-                formData.append("MoTa", $('#attrBrandDesc').val() || '');
-
-                // Bốc file từ thẻ input file vừa sửa ở bước 2.1
-                var fileInput = $('#attrBrandLogoFile')[0].files[0];
-                if (fileInput) {
-                    formData.append("LogoFile", fileInput);
-                } else if (!id) {
-                    alert("Vui lòng chọn file Logo cho thương hiệu mới!");
-                    return;
+                    // BÓC ẢNH CŨ HIỂN THỊ LÊN: Lấy link ảnh từ data-logo gắn ở dòng của bảng dữ liệu
+                    const oldLogoUrl = $(this).data('logo');
+                    if (oldLogoUrl) {
+                        $('#imgBrandLogoPreview').attr('src', oldLogoUrl);
+                        $('#divBrandLogoPreview').removeClass('d-none'); // Mở đèn cho khung preview sáng lên
+                    }
                 }
 
-                // Với luồng HTTP PUT (Sửa) trong ASP.NET Core MVC khi truyền FormData,
-                // đôi khi một số server cấu hình chặn FromForm ở phương thức PUT.
-                // Để an toàn 100%, ta giữ nguyên URL/Method của API và cấu hình Ajax truyền tải FormData:
-                sendData = formData;
-                contentTypeOption = false; // Bắt buộc khi truyền file
-                processDataOption = false; // Bắt buộc khi truyền file
-            } else {
-                // CÁC TAB KHÁC (Danh mục, Màu, Size): Giữ nguyên cơ chế gửi chuỗi JSON gọn nhẹ [FromBody]
-                let payload = { ten: $('#attrName').val() };
-                sendData = JSON.stringify(payload);
-                contentTypeOption = 'application/json';
-                processDataOption = true;
-            }
-
-            $.ajax({
-                url: url,
-                type: method,
-                data: sendData,
-                contentType: contentTypeOption,
-                processData: processDataOption,
-                success: function(res) {
-                    $('#attrModal').modal('hide');
-                    // Reset lại khung preview ảnh
-                    $('#divBrandLogoPreview').addClass('d-none');
-                    $('#imgBrandLogoPreview').attr('src', '');
-                    $('#attrBrandLogoFile').val('');
-
-                    loadAttributeData(type); // Tải lại bảng ngay lập tức
-                },
-                error: function(err) {
-                    alert(err.responseJSON?.message || "Xảy ra lỗi trong quá trình thực thi đồng bộ.");
-                }
+                $('#attrModal').modal('show');
             });
-        });
+
+            // XỬ LÝ LƯU DỮ LIỆU ĐỘNG (HỖ TRỢ CẢ THÊM MỚI VÀ CẬP NHẬT)
+            $('#attrForm').submit(function(e) {
+                e.preventDefault();
+                const type = $('#attrActionType').val();
+                const id = $('#attrId').val();
+
+                let url = config[type].url;
+                let method = 'POST';
+                if (id) {
+                    url += `/${id}`;
+                    method = 'PUT'; // Chuyển sang luồng sửa nếu có ID
+                }
+
+                // TẠO BIẾN GỬI DỮ LIỆU ĐA DẠNG (Bắt đầu phân tách luồng)
+                let sendData;
+                let contentTypeOption;
+                let processDataOption;
+
+                if (type === 'brands') {
+                    // NẾU LÀ THƯƠNG HIỆU: Sử dụng FormData để bốc file ảnh gửi lên Backend [FromForm]
+                    var formData = new FormData();
+                    formData.append("Ten", $('#attrName').val());
+                    formData.append("MoTa", $('#attrBrandDesc').val() || '');
+
+                    // Bốc file từ thẻ input file vừa sửa ở bước 2.1
+                    var fileInput = $('#attrBrandLogoFile')[0].files[0];
+                    if (fileInput) {
+                        formData.append("LogoFile", fileInput);
+                    } else if (!id) {
+                        alert("Vui lòng chọn file Logo cho thương hiệu mới!");
+                        return;
+                    }
+
+                    // Với luồng HTTP PUT (Sửa) trong ASP.NET Core MVC khi truyền FormData,
+                    // đôi khi một số server cấu hình chặn FromForm ở phương thức PUT.
+                    // Để an toàn 100%, ta giữ nguyên URL/Method của API và cấu hình Ajax truyền tải FormData:
+                    sendData = formData;
+                    contentTypeOption = false; // Bắt buộc khi truyền file
+                    processDataOption = false; // Bắt buộc khi truyền file
+                } else {
+                    // CÁC TAB KHÁC (Danh mục, Màu, Size): Giữ nguyên cơ chế gửi chuỗi JSON gọn nhẹ [FromBody]
+                    let payload = { ten: $('#attrName').val() };
+                    sendData = JSON.stringify(payload);
+                    contentTypeOption = 'application/json';
+                    processDataOption = true;
+                }
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: sendData,
+                    contentType: contentTypeOption,
+                    processData: processDataOption,
+                    success: function(res) {
+                        $('#attrModal').modal('hide');
+                        // Reset lại khung preview ảnh
+                        $('#divBrandLogoPreview').addClass('d-none');
+                        $('#imgBrandLogoPreview').attr('src', '');
+                        $('#attrBrandLogoFile').val('');
+
+                        loadAttributeData(type); // Tải lại bảng ngay lập tức
+                    },
+                    error: function(err) {
+                        alert(err.responseJSON?.message || "Xảy ra lỗi trong quá trình thực thi đồng bộ.");
+                    }
+                });
+            });
 
             // XỬ LÝ LỆNH XÓA (DELETE) - KIỂM TRA RÀNG BUỘC KHOÁ NGOẠI TỪ BACKEND CỦA BẠN
             $(document).on('click', '.btn-delete-attr', function() {
@@ -309,6 +405,19 @@
                         alert(err.responseJSON?.message || "Từ chối thực thi: Thuộc tính này đang được áp dụng cho sản phẩm trong hệ thống!");
                     }
                 });
+            });
+
+            // Xử lý click phân trang
+            $(document).on('click', '[id^="pagination-"] .page-link', function(e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                const type = $(this).data('type');
+                const totalPages = Math.ceil(allData[type].length / pageSize);
+                if (page && page !== currentPages[type] && page >= 1 && page <= totalPages) {
+                    currentPages[type] = page;
+                    renderAttributePage(type);
+                    $('html, body').animate({ scrollTop: $(`#table-${type}-body`).offset().top - 100 }, 200);
+                }
             });
         });
     </script>
