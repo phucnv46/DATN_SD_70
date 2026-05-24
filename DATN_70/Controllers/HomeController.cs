@@ -2,6 +2,7 @@
 using DATN_70.Models.Entities;
 using DATN_70.Models.Enums;
 using DATN_70.Models.ViewModels;
+using DATN_70.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,15 +11,17 @@ namespace DATN_70.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _dbContext;
+    private readonly IStoreRepository _storeRepo;
 
-    public HomeController(AppDbContext dbContext)
+    public HomeController(AppDbContext dbContext, IStoreRepository storeRepo)
     {
         _dbContext = dbContext;
+        _storeRepo = storeRepo;
     }
 
     public async Task<IActionResult> Index()
     {
-        // 1. Lấy dữ liệu Banners (Giữ nguyên)
+        // Banners
         var banners = await _dbContext.Banners
             .AsNoTracking()
             .Where(item => item.KichHoat)
@@ -34,56 +37,40 @@ public class HomeController : Controller
             })
             .ToListAsync();
 
-        // Cầu nối truy vấn gốc
-        var baseProductQuery = _dbContext.SanPhams
-            .AsNoTracking()
-            .Where(sp => sp.ChiTietSanPhams.Any());
+        // Sản phẩm từ repository (đã tính khuyến mãi toàn sàn)
+        var allProducts = await _storeRepo.GetProductsAsync(HttpContext.RequestAborted);
 
-        // 2. Lấy 8 Sản phẩm nổi bật (Featured)
-        var featuredProducts = await baseProductQuery
-            .Select(sp => new HomeProductViewModel
-            {
-                SanPhamID = sp.SanPhamID,
-                TenSanPham = sp.Ten ?? "Winter Fashion",
-                MoTaNgan = sp.MoTa ?? "Thời trang Lookbook",
-                DanhMuc = sp.ThuongHieu != null ? sp.ThuongHieu.Ten : "Lookbook",
-                GiaThapNhat = sp.ChiTietSanPhams.Min(ct => ct.GiaNiemYet),
-
-
-                GiaGoc = sp.ChiTietSanPhams.Max(ct => ct.GiaNiemYet),
-
-                PhanTramGiam = 0,
-
-                HinhAnhUrl = _dbContext.HinhAnhSanPhams
-                    .Where(ha => ha.SanPhamID == sp.SanPhamID)
-                    .Select(ha => ha.Url)
-                    .FirstOrDefault() ?? "/images/default-product.png"
-            })
-            .OrderBy(p => p.SanPhamID)
+        var featuredProducts = allProducts
             .Take(8)
-            .ToListAsync();
-
-
-        var saleProducts = await baseProductQuery
             .Select(sp => new HomeProductViewModel
             {
                 SanPhamID = sp.SanPhamID,
-                TenSanPham = sp.Ten ?? "Winter Fashion",
-                MoTaNgan = sp.MoTa ?? "",
-                DanhMuc = sp.ThuongHieu != null ? sp.ThuongHieu.Ten : "Khuyến mãi",
-                GiaThapNhat = sp.ChiTietSanPhams.Min(ct => ct.GiaNiemYet),
-                GiaGoc = sp.ChiTietSanPhams.Max(ct => ct.GiaNiemYet),
-                PhanTramGiam = 0,
-                HinhAnhUrl = _dbContext.HinhAnhSanPhams
-                    .Where(ha => ha.SanPhamID == sp.SanPhamID)
-                    .Select(ha => ha.Url)
-                    .FirstOrDefault() ?? "/images/default-product.png"
+                TenSanPham = sp.Ten,
+                MoTaNgan = sp.MoTa,
+                DanhMuc = sp.DanhMuc ?? "Lookbook",
+                GiaThapNhat = sp.GiaThapNhat,
+                GiaGoc = sp.GiaGoc,
+                PhanTramGiam = (double)sp.PhanTramGiam,
+                HinhAnhUrl = sp.HinhAnhDaiDien ?? "/images/default-product.png"
             })
-            .OrderByDescending(p => p.SanPhamID) // Sắp xếp ngược lại để lấy sản phẩm khác biệt với hàng trên
-            .Take(4)
-            .ToListAsync();
+            .ToList();
 
-        // 4. Đóng gói Model gửi ra View
+        var saleProducts = allProducts
+            .OrderByDescending(sp => sp.PhanTramGiam)
+            .Take(4)
+            .Select(sp => new HomeProductViewModel
+            {
+                SanPhamID = sp.SanPhamID,
+                TenSanPham = sp.Ten,
+                MoTaNgan = sp.MoTa,
+                DanhMuc = sp.DanhMuc ?? "Khuyến mãi",
+                GiaThapNhat = sp.GiaThapNhat,
+                GiaGoc = sp.GiaGoc,
+                PhanTramGiam = (double)sp.PhanTramGiam,
+                HinhAnhUrl = sp.HinhAnhDaiDien ?? "/images/default-product.png"
+            })
+            .ToList();
+
         var model = new HomeIndexViewModel
         {
             Banners = banners,
@@ -96,72 +83,43 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Products(string? category, string? size, decimal? minPrice, decimal? maxPrice, string? search, string? sort)
     {
-        // 1. Khởi tạo truy vấn gốc, Nạp sẵn bảng con ChiTietSanPhams để tránh lỗi Lazy Loading
-        var query = _dbContext.SanPhams
-            .AsNoTracking()
-            .Where(sp => sp.ChiTietSanPhams.Any())
-            .AsQueryable();
+        var allProducts = await _storeRepo.GetProductsAsync(HttpContext.RequestAborted);
 
-        // 2. LỘC THEO DANH MỤC LỚN
         if (!string.IsNullOrWhiteSpace(category) && category != "all")
-        {
-            query = query.Where(sp => sp.DanhMucID == category);
-        }
+            allProducts = allProducts.Where(p => p.DanhMuc == category).ToList();
 
-        // 3. LỌC THEO KÍCH CỠ (SIZE) - Quét sâu vào bảng con ChiTietSanPhams
-        if (!string.IsNullOrWhiteSpace(size) && size != "all")
-        {
-            query = query.Where(sp => sp.ChiTietSanPhams.Any(ct => ct.KichCoID == size));
-        }
-
-        // 4. LỌC THEO TÊN SẢN PHẨM
         if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(sp => sp.Ten.Contains(search));
-        }
+            allProducts = allProducts.Where(p => p.Ten.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        // 5. Mapping sang ViewModel dữ liệu tươi sống
-        var productsQuery = query.Select(sp => new HomeProductViewModel
-        {
-            SanPhamID = sp.SanPhamID,
-            TenSanPham = sp.Ten ?? "Winter Fashion",
-            MoTaNgan = sp.MoTa ?? "",
-            // Lấy tên Danh mục thật từ Database thay vì lấy Thương hiệu như lúc trước
-            DanhMuc = sp.DanhMuc != null ? sp.DanhMuc.Ten : "Lookbook",
-            GiaThapNhat = sp.ChiTietSanPhams.Min(ct => ct.GiaNiemYet),
-            GiaGoc = sp.ChiTietSanPhams.Max(ct => ct.GiaNiemYet),
-            PhanTramGiam = 0,
-            HinhAnhUrl = _dbContext.HinhAnhSanPhams
-                .Where(ha => ha.SanPhamID == sp.SanPhamID)
-                .Select(ha => ha.Url)
-                .FirstOrDefault() ?? "/images/default-product.png"
-        });
-
-        // 6. LỌC THEO KHOẢNG GIÁ
         if (minPrice.HasValue && minPrice.Value > 0)
-        {
-            productsQuery = productsQuery.Where(p => p.GiaThapNhat >= minPrice.Value);
-        }
-        if (maxPrice.HasValue && maxPrice.Value > 0)
-        {
-            productsQuery = productsQuery.Where(p => p.GiaThapNhat <= maxPrice.Value);
-        }
+            allProducts = allProducts.Where(p => p.GiaThapNhat >= minPrice.Value).ToList();
 
-        // 7. SẮP XẾP
-        productsQuery = sort switch
+        if (maxPrice.HasValue && maxPrice.Value > 0)
+            allProducts = allProducts.Where(p => p.GiaThapNhat <= maxPrice.Value).ToList();
+
+        allProducts = sort switch
         {
-            "price-asc" => productsQuery.OrderBy(p => p.GiaThapNhat),
-            "price-desc" => productsQuery.OrderByDescending(p => p.GiaThapNhat),
-            "name-asc" => productsQuery.OrderBy(p => p.TenSanPham),
-            "name-desc" => productsQuery.OrderByDescending(p => p.TenSanPham),
-            _ => productsQuery.OrderBy(p => p.SanPhamID)
+            "price-asc" => allProducts.OrderBy(p => p.GiaThapNhat).ToList(),
+            "price-desc" => allProducts.OrderByDescending(p => p.GiaThapNhat).ToList(),
+            "name-asc" => allProducts.OrderBy(p => p.Ten).ToList(),
+            "name-desc" => allProducts.OrderByDescending(p => p.Ten).ToList(),
+            _ => allProducts
         };
 
-        // 8. Đổ danh sách hỗ trợ hiển thị trên thẻ Select ở Giao diện
+        var productViewModels = allProducts.Select(sp => new HomeProductViewModel
+        {
+            SanPhamID = sp.SanPhamID,
+            TenSanPham = sp.Ten,
+            MoTaNgan = sp.MoTa,
+            DanhMuc = sp.DanhMuc ?? "Lookbook",
+            GiaThapNhat = sp.GiaThapNhat,
+            GiaGoc = sp.GiaGoc,
+            PhanTramGiam = (double)sp.PhanTramGiam,
+            HinhAnhUrl = sp.HinhAnhDaiDien ?? "/images/default-product.png"
+        }).ToList();
+
         ViewBag.Categories = await _dbContext.DanhMucs.AsNoTracking().Select(d => new { d.DanhMucID, d.Ten }).ToListAsync();
         ViewBag.Sizes = await _dbContext.KichCos.AsNoTracking().Select(k => new { k.KichCoID, k.Ten }).ToListAsync();
-
-        // Giữ lại trạng thái bộ lọc cũ để client hiển thị đúng lựa chọn vừa bấm
         ViewBag.CurrentCategory = category ?? "all";
         ViewBag.CurrentSize = size ?? "all";
         ViewBag.CurrentSearch = search;
@@ -169,9 +127,9 @@ public class HomeController : Controller
         ViewBag.CurrentMaxPrice = maxPrice;
         ViewBag.CurrentSort = sort;
 
-        var products = await productsQuery.ToListAsync();
-        return View(products);
+        return View(productViewModels);
     }
+
 
     public IActionResult Details(string? id)
     {
@@ -307,7 +265,68 @@ public class HomeController : Controller
     {
         return !string.IsNullOrWhiteSpace(HttpContext.Session.GetString("UserId"));
     }
+    private async Task<decimal> GetDiscountedPriceAsync(ChiTietSanPham variant, CancellationToken ct)
+    {
+        var basePrice = variant.GiaNiemYet;
+        decimal bestPrice = basePrice;
+        var now = DateTime.Now;
 
+        // 1. Khuyến mãi riêng
+        var productPromo = await _dbContext.KhuyenMaiSanPhams
+            .Include(ksp => ksp.KhuyenMai)
+            .Where(ksp => ksp.SanPhamID == variant.SanPhamID
+                && ksp.KhuyenMai.TrangThai == Enums.TrangThaiHoatDong.HoatDong
+                && ksp.KhuyenMai.NgayApDung <= now && ksp.KhuyenMai.NgayKetThuc >= now
+                && (ksp.KhuyenMai.SoLuongToiDa == 0 || ksp.KhuyenMai.SoLuongDaDung < ksp.KhuyenMai.SoLuongToiDa))
+            .Select(ksp => ksp.KhuyenMai)
+            .FirstOrDefaultAsync(ct);
+
+        if (productPromo != null)
+        {
+            var price = ApplyDiscount(basePrice, productPromo);
+            if (price < bestPrice) bestPrice = price;
+        }
+
+        // 2. Khuyến mãi toàn sàn
+        var globalPromo = await _dbContext.KhuyenMais
+            .FirstOrDefaultAsync(k =>
+                k.MaCode == null &&
+                k.TrangThai == Enums.TrangThaiHoatDong.HoatDong &&
+                k.NgayApDung <= now && k.NgayKetThuc >= now &&
+                (k.SoLuongToiDa == 0 || k.SoLuongDaDung < k.SoLuongToiDa) &&
+                !k.KhuyenMaiSanPhams.Any(),
+            ct);
+
+        if (globalPromo != null)
+        {
+            var price = ApplyDiscount(basePrice, globalPromo);
+            if (price < bestPrice) bestPrice = price;
+        }
+
+        return bestPrice;
+    }
+
+    // Hàm tính giá sau khuyến mãi (giống CartController)
+    private static decimal ApplyDiscount(decimal basePrice, KhuyenMai? promo)
+    {
+        if (promo == null || promo.GiaTriGiam <= 0)
+            return basePrice;
+
+        decimal tienGiam = 0;
+        if (promo.LoaiGiamGia == Enums.LoaiGiamGia.PhanTram) // giảm %
+        {
+            tienGiam = basePrice * (promo.GiaTriGiam / 100m);
+            if (promo.GiamToiDa > 0 && tienGiam > promo.GiamToiDa)
+                tienGiam = promo.GiamToiDa;
+        }
+        else // giảm tiền thẳng
+        {
+            tienGiam = promo.GiaTriGiam;
+        }
+
+        decimal final = basePrice - tienGiam;
+        return final < 0 ? 0 : Math.Round(final, 0, MidpointRounding.AwayFromZero);
+    }
     // ========================================================
 
     // API TẠO ĐƠN HÀNG CÔNG KHAI DÀNH CHO KHÁCH HÀNG TRÊN WEB (BẢN CHUẨN SẠCH LỖI BIÊN DỊCH)
@@ -398,7 +417,7 @@ public class HomeController : Controller
                 ctsp.SoLuongTonKho -= item.SoLuong;
 
                 decimal mucVAT = ctsp.SanPham.MucVAT;
-                decimal donGia = ctsp.GiaNiemYet;
+                decimal donGia = await GetDiscountedPriceAsync(ctsp, cancellationToken);
                 decimal tienVatItem = (donGia * mucVAT / 100) * item.SoLuong;
 
                 tongTienHang += donGia * item.SoLuong;

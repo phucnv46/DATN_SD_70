@@ -20,4 +20,6 @@ public class ProductCreateRequest
     public List<ProductVariantRequest> BienThes { get; set; } = new();
 
     public IFormFile? FileAnh { get; set; }
+    public int MucVAT { get; set; } = 10;
+    public List<ColorImageRequest>? ColorImages { get; set; }
 }

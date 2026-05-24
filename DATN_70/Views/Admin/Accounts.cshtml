@@ -44,6 +44,7 @@
         <table class="table table-hover align-middle">
             <thead>
                 <tr>
+                    <th style="width: 50px;">STT</th>
                     <th>Mã Tài Khoản</th>
                     <th>Chủ Tài Khoản</th>
                     <th>Email Đăng Nhập</th>
@@ -54,6 +55,16 @@
             <tbody id="accountTableBody">
             </tbody>
         </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <span class="small text-muted">
+                    Hiển thị <span id="startRecord">0</span>-<span id="endRecord">0</span> trên tổng <span id="totalRecords">0</span>
+                </span>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+            </nav>
+        </div>
     </div>
 </div>
 
@@ -66,7 +77,9 @@
             let currentRoleId = "R03";
             let currentKeyword = "";
             let currentStatus = "";
-
+            let currentPage = 1;
+            const pageSize = 10;
+            let allAccounts = [];
             loadAccounts();
 
             // 1. Chuyển Tab
@@ -92,50 +105,75 @@
             });
 
             // Hàm gọi API lấy danh sách tài khoản
-            function loadAccounts() {
-                $('#accountTableBody').html('<tr><td colspan="5" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang rà soát danh sách...</td></tr>');
+                    function loadAccounts() {
+            $('#accountTableBody').html('<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Đang rà soát danh sách...</td></tr>');
 
-                // Nối URL với các tham số lọc
-                let url = `/api/admin/accounts?roleId=${currentRoleId}`;
-                if(currentKeyword) url += `&search=${encodeURIComponent(currentKeyword)}`;
-                if(currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
+            let url = `/api/admin/accounts?roleId=${currentRoleId}`;
+            if(currentKeyword) url += `&search=${encodeURIComponent(currentKeyword)}`;
+            if(currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
 
-                $.get(url, function(data) {
-                    let html = '';
-                    if(data.length === 0) {
-                        html = '<tr><td colspan="5" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
-                    } else {
-                        data.forEach(user => {
-                            const isLocked = user.trangThai === "Bị khóa";
-                            const roleBadge = user.vaiTroId === "R01" ? "bg-danger" : (user.vaiTroId === "R02" ? "bg-primary" : "bg-secondary");
-                            const roleName = user.vaiTroId === "R01" ? "Admin" : (user.vaiTroId === "R02" ? "Nhân viên" : "Khách hàng");
+            $.get(url, function(data) {
+                allAccounts = data;
+                currentPage = 1;
+                renderAccountsPage();
+            });
+        }
 
-                            html += `
-                                <tr>
-                                    <td class="text-secondary small font-monospace">${user.taiKhoanId}</td>
-                                            <td>
-                                        <div class="fw-bold text-dark">${user.tenChuTaiKhoan}</div>
-                                                <small class="text-muted"><i class="bi bi-telephone me-1"></i>${user.soDienThoai || 'N/A'}</small>
-                                        </td>
-                                    <td class="fw-medium text-dark">${user.email}</td>
-                                    <td><span class="badge ${roleBadge}-soft text-${roleBadge.replace('bg-', '')} border px-2 py-1">${roleName}</span></td>
-                                    <td class="text-center">
-                                        <div class="form-check form-switch d-inline-block">
-                                            <input class="form-check-input btn-toggle-status" type="checkbox"
-                                                   data-id="${user.taiKhoanId}"
-                                                   data-email="${user.email}"
-                                                   ${!isLocked ? 'checked' : ''}>
-                                            <label class="form-check-label small fw-bold ${isLocked ? 'text-danger' : 'text-success'}">
-                                                ${user.trangThai}
-                                            </label>
-                                        </div>
-                                    </td>
-                                </tr>`;
-                        });
-                    }
-                    $('#accountTableBody').html(html);
+        function renderAccountsPage() {
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, allAccounts.length);
+            const pageData = allAccounts.slice(start, end);
+
+            let html = '';
+            if(pageData.length === 0) {
+                html = '<tr><td colspan="6" class="text-center py-4 text-muted">Không tìm thấy tài khoản nào.</td></tr>';
+            } else {
+                pageData.forEach((user, index) => {
+                    const stt = start + index + 1;
+                    const isLocked = user.trangThai === "Bị khóa";
+                    const roleBadge = user.vaiTroId === "R01" ? "bg-danger" : (user.vaiTroId === "R02" ? "bg-primary" : "bg-secondary");
+                    const roleName = user.vaiTroId === "R01" ? "Admin" : (user.vaiTroId === "R02" ? "Nhân viên" : "Khách hàng");
+                    html += `
+                        <tr>
+                            <td class="text-center small text-muted">${stt}</td>
+                            <td class="text-secondary small font-monospace">${user.taiKhoanId}</td>
+                            <td>
+                                <div class="fw-bold text-dark">${user.tenChuTaiKhoan}</div>
+                                <small class="text-muted"><i class="bi bi-telephone me-1"></i>${user.soDienThoai || 'N/A'}</small>
+                            </td>
+                            <td class="fw-medium text-dark">${user.email}</td>
+                            <td><span class="badge ${roleBadge}-soft text-${roleBadge.replace('bg-', '')} border px-2 py-1">${roleName}</span></td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input btn-toggle-status" type="checkbox"
+                                           data-id="${user.taiKhoanId}"
+                                           data-email="${user.email}"
+                                           ${!isLocked ? 'checked' : ''}>
+                                    <label class="form-check-label small fw-bold ${isLocked ? 'text-danger' : 'text-success'}">
+                                        ${user.trangThai}
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>`;
                 });
             }
+            $('#accountTableBody').html(html);
+
+            $('#startRecord').text(allAccounts.length > 0 ? start + 1 : 0);
+            $('#endRecord').text(end);
+            $('#totalRecords').text(allAccounts.length);
+
+            const totalPages = Math.ceil(allAccounts.length / pageSize);
+            let paginationHtml = '';
+            if (totalPages > 1) {
+                paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">«</a></li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                paginationHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">»</a></li>`;
+            }
+            $('#pagination').html(paginationHtml);
+        }
 
             // Xử lý click nút gạt Switch Trạng thái tài khoản
             $(document).on('change', '.btn-toggle-status', function() {
@@ -169,6 +207,15 @@
                     }
                 });
             });
+                    $(document).on('click', '#pagination .page-link', function(e) {
+            e.preventDefault();
+            const page = parseInt($(this).data('page'));
+            if (page && page !== currentPage && page >= 1 && page <= Math.ceil(allAccounts.length / pageSize)) {
+                currentPage = page;
+                renderAccountsPage();
+                $('html, body').animate({ scrollTop: $('#accountTableBody').offset().top - 100 }, 200);
+            }
+        });
         });
     </script>
 }

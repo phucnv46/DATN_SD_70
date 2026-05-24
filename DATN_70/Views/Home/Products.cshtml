@@ -23,7 +23,6 @@
                         </div>
 
                         <form method="get" asp-controller="Home" asp-action="Products">
-
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Danh mục</label>
                                 <select name="category" class="form-select rounded-3">
@@ -37,7 +36,6 @@
                                     }
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Kích cỡ (Size)</label>
                                 <select name="size" class="form-select rounded-3">
@@ -51,12 +49,10 @@
                                     }
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Tên sản phẩm</label>
                                 <input type="text" name="search" class="form-control rounded-3" placeholder="Nhập từ khóa tìm..." value="@ViewBag.CurrentSearch">
                             </div>
-
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Khoảng giá (VNĐ)</label>
                                 <div class="d-flex align-items-center gap-2">
@@ -65,7 +61,6 @@
                                     <input type="number" name="maxPrice" class="form-control rounded-3 form-control-sm" placeholder="Đến" value="@ViewBag.CurrentMaxPrice">
                                 </div>
                             </div>
-
                             <div class="mb-4">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Sắp xếp theo</label>
                                 <select name="sort" class="form-select rounded-3">
@@ -75,7 +70,6 @@
                                     <option value="name-asc" selected="@(ViewBag.CurrentSort == "name-asc")">Tên: A - Z</option>
                                 </select>
                             </div>
-
                             <button type="submit" class="btn btn-dark w-100 rounded-3 py-2 fw-bold">Áp dụng bộ lọc</button>
                         </form>
                     </div>
@@ -89,7 +83,7 @@
                         <div class="col-12 w-100 text-center py-5 bg-white rounded-4 shadow-sm">
                             <div class="fs-1 text-muted mb-3"><i class="bi bi-box-seam"></i></div>
                             <h5 class="fw-bold">Không có mặt hàng nào phù hợp!</h5>
-                            <p class="text-muted">Ngọc hãy thử đổi một danh mục hoặc khoảng giá khác nhé.</p>
+                            <p class="text-muted">Hãy thử đổi một danh mục hoặc khoảng giá khác nhé.</p>
                         </div>
                     }
                     else
@@ -100,6 +94,13 @@
                                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden position-relative product-card-hover">
                                     <span class="position-absolute top-0 start-0 badge bg-dark m-3 rounded-pill px-3 py-2 fw-bold text-uppercase" style="z-index: 2; font-size: 0.7rem;">@product.DanhMuc</span>
 
+                                    @if (product.GiaThapNhat < product.GiaGoc)
+                                    {
+                                        <span class="position-absolute top-0 end-0 badge bg-danger m-3 rounded-pill px-3 py-2 fw-bold" style="z-index: 2; font-size: 0.7rem;">
+                                            -@product.PhanTramGiam.ToString("N0")%
+                                        </span>
+                                    }
+
                                     <a asp-controller="Home" asp-action="Details" asp-route-id="@product.SanPhamID" class="text-decoration-none text-dark d-block">
                                         <div class="ratio ratio-1x1 bg-light">
                                             <img src="@product.HinhAnhUrl" alt="@product.TenSanPham" class="img-fluid object-fit-cover w-100 h-100" loading="lazy" onerror="this.onerror=null; this.src='/images/default-product.png'" />
@@ -109,7 +110,15 @@
                                                 <h5 class="card-title fw-bold fs-6 text-truncate mb-1" title="@product.TenSanPham">@product.TenSanPham</h5>
                                             </div>
                                             <div class="d-flex align-items-center gap-2 mt-2">
-                                                <span class="text-danger fw-extrabold fs-5">@product.GiaThapNhat.ToString("N0") đ</span>
+                                                @if (product.GiaThapNhat < product.GiaGoc)
+                                                {
+                                                    <span class="text-muted text-decoration-line-through small">@product.GiaGoc.ToString("N0") đ</span>
+                                                    <span class="text-danger fw-extrabold fs-5">@product.GiaThapNhat.ToString("N0") đ</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-danger fw-extrabold fs-5">@product.GiaGoc.ToString("N0") đ</span>
+                                                }
                                             </div>
                                         </div>
                                     </a>

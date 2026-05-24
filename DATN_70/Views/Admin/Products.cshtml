@@ -18,6 +18,7 @@
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
+                    <th style="width: 50px;">STT</th>
                     <th>Mã SP</th>
                     <th>Tên Sản Phẩm</th>
                     <th>Danh Mục</th>
@@ -30,6 +31,16 @@
                 <tr><td colspan="6" class="text-center text-muted py-4">Đang tải dữ liệu...</td></tr>
             </tbody>
         </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <span class="small text-muted">
+                    Hiển thị <span id="startRecord">0</span>-<span id="endRecord">0</span> trên tổng <span id="totalRecords">0</span>
+                </span>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+            </nav>
+        </div>
     </div>
 </div>
 
@@ -49,22 +60,29 @@
                                 <label class="form-label small fw-bold">Tên sản phẩm *</label>
                                 <input type="text" class="form-control form-control-sm" id="pTen" required />
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-bold">Danh mục *</label>
                                 <select class="form-select form-select-sm" id="pDanhMuc" required></select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-bold">Thương hiệu *</label>
                                 <select class="form-select form-select-sm" id="pThuongHieu" required></select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Thuế VAT (%) *</label>
+                                <select class="form-select form-select-sm" id="pMucVAT">
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="8">8%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="15">15%</option>
+                                </select>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold">Mô tả sản phẩm</label>
                                 <textarea class="form-control form-control-sm" id="pMoTa" rows="2"></textarea>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label small fw-bold">Ảnh đại diện sản phẩm *</label>
-                                <input type="file" class="form-control form-control-sm" id="pFileAnh" accept="image/*" required />
-                            </div>
+                            
                         </div>
                     </div>
 
@@ -83,6 +101,7 @@
                                         <th>Kích cỡ</th>
                                         <th>Giá bán (đ)</th>
                                         <th>Kho</th>
+                                        <th>Ảnh</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -117,26 +136,29 @@
                                 <label class="form-label small fw-bold">Tên sản phẩm *</label>
                                 <input type="text" class="form-control form-control-sm" id="editpTen" required />
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-bold">Danh mục *</label>
                                 <select class="form-select form-select-sm" id="editpDanhMuc" required></select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label small fw-bold">Thương hiệu *</label>
                                 <select class="form-select form-select-sm" id="editpThuongHieu" required></select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold">Thuế VAT (%) *</label>
+                                <select class="form-select form-select-sm" id="editpMucVAT">
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="8">8%</option>
+                                    <option value="10" selected>10%</option>
+                                    <option value="15">15%</option>
+                                </select>
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label small fw-bold">Mô tả sản phẩm</label>
                                 <textarea class="form-control form-control-sm" id="editpMoTa" rows="2"></textarea>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Ảnh sản phẩm hiện tại</label>
-                                <div id="editpPreviewImg" class="mb-2"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Thay thế ảnh mới (Bỏ trống nếu giữ nguyên)</label>
-                                <input type="file" class="form-control form-control-sm" id="editpFileAnh" accept="image/*" />
-                            </div>
+                            
                         </div>
                     </div>
 
@@ -155,6 +177,7 @@
                                         <th>Kích cỡ</th>
                                         <th>Giá bán (đ)</th>
                                         <th>Kho tồn</th>
+                                        <th>Ảnh</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -178,7 +201,9 @@
             $('#menu-products').addClass('active');
 
             let colors = [], sizes = [], categories = [], brands = [];
-
+            let currentPage = 1;
+            const pageSize = 10;
+            let allProducts = [];
             // 1. Đồng bộ tải tài nguyên lúc khởi chạy trang công khai
             Promise.all([
                 $.get('/api/admin/products'),
@@ -202,46 +227,96 @@
             }).catch(err => alert("Lỗi khi kết nối tài nguyên máy chủ."));
 
             // 2. Hàm vẽ bảng sản phẩm ra màn hình
-            function renderProductTable(data) {
-                if(data.length === 0) {
-                    $('#productTableBody').html('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có sản phẩm nào trong kho.</td></tr>');
-                    return;
-                }
-                const html = data.map(p => `
-                    <tr>
-                        <td class="font-monospace small fw-bold text-secondary">${p.sanPhamID}</td>
-                        <td class="fw-bold text-dark">${p.ten}</td>
-                        <td>${p.danhMuc}</td>
-                        <td>${p.thuongHieu}</td>
-                        <td class="text-center"><span class="badge bg-secondary-soft text-secondary border">${p.soBienThe} phân loại</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-dark btn-view-product" data-id="${p.sanPhamID}" title="Sửa thông tin"><i class="bi bi-eye-fill"></i></button>
-                            <button class="btn btn-sm btn-outline-danger btn-delete-product" data-id="${p.sanPhamID}" title="Xóa sản phẩm"><i class="bi bi-trash-fill"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
+                    function renderProductTable(data) {
+            allProducts = data;
+            currentPage = 1;
+            renderProductPage();
+        }
+
+        function renderProductPage() {
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, allProducts.length);
+            const pageData = allProducts.slice(start, end);
+
+            if (pageData.length === 0) {
+                $('#productTableBody').html('<tr><td colspan="7" class="text-center text-muted py-4">Chưa có sản phẩm nào trong kho.</td></tr>');
+            } else {
+                const html = pageData.map((p, index) => {
+                    const stt = start + index + 1;
+                    return `
+                        <tr>
+                            <td class="text-center small text-muted">${stt}</td>
+                            <td class="font-monospace small fw-bold text-secondary">${p.sanPhamID}</td>
+                            <td class="fw-bold text-dark">${p.ten}</td>
+                            <td>${p.danhMuc}</td>
+                            <td>${p.thuongHieu}</td>
+                            <td class="text-center"><span class="badge bg-secondary-soft text-secondary border">${p.soBienThe} phân loại</span></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-dark btn-view-product" data-id="${p.sanPhamID}" title="Sửa thông tin"><i class="bi bi-eye-fill"></i></button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete-product" data-id="${p.sanPhamID}" title="Xóa sản phẩm"><i class="bi bi-trash-fill"></i></button>
+                            </td>
+                        </tr>`;
+                }).join('');
                 $('#productTableBody').html(html);
             }
 
-            // 3. Quản lý dòng phân loại động cho form TẠO MỚI
-            function addVariantRow() {
-                const colorOptions = colors.map(c => `<option value="${c.mauID}">${c.ten}</option>`).join('');
-                const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}">${s.ten}</option>`).join('');
-                const rowHtml = `
-                    <tr class="variant-row">
-                        <td><select class="form-select form-select-sm v-color" required><option value="">Màu...</option>${colorOptions}</select></td>
-                        <td><select class="form-select form-select-sm v-size" required><option value="">Size...</option>${sizeOptions}</select></td>
-                        <td><input type="number" class="form-control form-control-sm v-price" min="0" required placeholder="Giá niêm yết"></td>
-                        <td><input type="number" class="form-control form-control-sm v-stock" min="0" required placeholder="SL Tồn"></td>
-                        <td><button type="button" class="btn btn-sm text-danger btn-remove-variant"><i class="bi bi-trash"></i></button></td>
-                    </tr>`;
-                $('#variantTableBody').append(rowHtml);
+            // Cập nhật thông tin phân trang
+            $('#startRecord').text(allProducts.length > 0 ? start + 1 : 0);
+            $('#endRecord').text(end);
+            $('#totalRecords').text(allProducts.length);
+
+            // Tạo nút phân trang
+            const totalPages = Math.ceil(allProducts.length / pageSize);
+            let paginationHtml = '';
+            if (totalPages > 1) {
+                paginationHtml += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage - 1}">«</a></li>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHtml += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                }
+                paginationHtml += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${currentPage + 1}">»</a></li>`;
             }
-            $('#btnAddVariant').click(addVariantRow);
-            $(document).on('click', '.btn-remove-variant', function() {
-                if($('.variant-row').length > 1) $(this).closest('tr').remove();
-                else alert("Sản phẩm bắt buộc phải có ít nhất 1 phân loại.");
+            $('#pagination').html(paginationHtml);
+        }
+
+            // 3. Quản lý dòng phân loại động cho form TẠO MỚI
+                            function addVariantRow() {
+            const colorOptions = colors.map(c => `<option value="${c.mauID}">${c.ten}</option>`).join('');
+            const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}">${s.ten}</option>`).join('');
+            const rowHtml = `
+                <tr class="variant-row">
+                    <td><select class="form-select form-select-sm v-color" required><option value="">Màu...</option>${colorOptions}</select></td>
+                    <td><select class="form-select form-select-sm v-size" required><option value="">Size...</option>${sizeOptions}</select></td>
+                    <td><input type="number" class="form-control form-control-sm v-price" min="0" required placeholder="Giá niêm yết"></td>
+                    <td><input type="number" class="form-control form-control-sm v-stock" min="0" required placeholder="SL Tồn"></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="file" class="form-control form-control-sm v-image" accept="image/*" style="width: 120px;" onchange="previewNewImage(this)" />
+                            <img class="rounded border" style="height: 40px; width: 40px; object-fit: cover; display: none;" />
+                        </div>
+                    </td>
+                    <td><button type="button" class="btn btn-sm text-danger btn-remove-variant"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
+            $('#variantTableBody').append(rowHtml);
+        }
+                    $('#btnAddVariant').click(function() {
+            // Kiểm tra trùng trước khi thêm
+            let duplicate = false;
+            const newColor = $('#variantTableBody tr:last .v-color').val(); // Lấy dòng cuối cùng (chưa có dòng mới)
+            const newSize = $('#variantTableBody tr:last .v-size').val();
+            $('#variantTableBody tr').each(function() {
+                const existingColor = $(this).find('.v-color').val();
+                const existingSize = $(this).find('.v-size').val();
+                if (existingColor === newColor && existingSize === newSize && newColor && newSize) {
+                    duplicate = true;
+                    return false;
+                }
             });
+            if (duplicate) {
+                alert("Biến thể với Màu và Size này đã tồn tại.");
+                return;
+            }
+            addVariantRow();
+        });
 
             // 4. BẤM NÚT CON MẮT: LOAD DATA ĐỔ LÊN MODAL CẬP NHẬT (READ DETAIL)
             $(document).on('click', '.btn-view-product', function() {
@@ -250,54 +325,72 @@
                 $('#editpDanhMuc').html('<option value="">- Chọn -</option>' + categories.map(c => `<option value="${c.danhMucID}">${c.ten}</option>`).join(''));
                 $('#editpThuongHieu').html('<option value="">- Chọn -</option>' + brands.map(b => `<option value="${b.thuongHieuID}">${b.ten}</option>`).join(''));
 
-                $.get(`/api/admin/products/${productId}`, function(res) {
-                    $('#txtEditProductId').text(`[${res.sanPhamID}]`);
-                    $('#editpId').val(res.sanPhamID);
-                    $('#editpTen').val(res.ten);
-                    $('#editpMoTa').val(res.moTa);
-                    $('#editpDanhMuc').val(res.danhMucID);
-                    $('#editpThuongHieu').val(res.thuongHieuID);
+                        $.get(`/api/admin/products/${productId}`, function(res) {
+            $('#txtEditProductId').text(`[${res.sanPhamID}]`);
+            $('#editpId').val(res.sanPhamID);
+            $('#editpTen').val(res.ten);
+            $('#editpMoTa').val(res.moTa);
+            $('#editpDanhMuc').val(res.danhMucID);
+            $('#editpThuongHieu').val(res.thuongHieuID);
+            $('#editpMucVAT').val(res.mucVAT);
 
-                    if(res.hinhAnhUrl) {
-                        $('#editpPreviewImg').html(`<img src="${res.hinhAnhUrl}" style="height: 50px; object-fit: cover;" class="rounded border shadow-sm" />`);
-                    } else {
-                        $('#editpPreviewImg').html('<span class="text-muted small">Chưa nạp ảnh</span>');
-                    }
+            // Xóa preview ảnh đại diện cũ (không cần nữa)
+            $('#editpPreviewImg').empty();
 
-                    $('#editVariantTableBody').empty();
-                    if(res.bienThes && res.bienThes.length > 0) {
-                        res.bienThes.forEach(vt => {
-                            addVariantRowToEdit(vt.mauID, vt.kichCoID, vt.giaNiemYet, vt.soLuongTonKho);
-                        });
-                    } else {
-                        addVariantRowToEdit();
-                    }
+            $('#editVariantTableBody').empty();
+            if(res.bienThes && res.bienThes.length > 0) {
+                // Tạo map ảnh theo màu
+                const imageMap = new Map();
+                if (res.hinhAnhs) {
+                    res.hinhAnhs.forEach(h => {
+                        if (h.mauID) {
+                            // Chỉ lấy ảnh đầu tiên của mỗi màu (IsMain = true)
+                            if (!imageMap.has(h.mauID) && h.isMain) {
+                                imageMap.set(h.mauID, h.url);
+                            }
+                        }
+                    });
+                }
 
-                    $('#productEditModal').modal('show');
-                }).fail(err => alert("Lỗi trích xuất thông tin sản phẩm."));
+                res.bienThes.forEach(vt => {
+                    const imgUrl = imageMap.get(vt.mauID) || '';
+                    addVariantRowToEdit(vt.mauID, vt.kichCoID, vt.giaNiemYet, vt.soLuongTonKho, imgUrl);
+                });
+            } else {
+                addVariantRowToEdit();
+            }
+
+            $('#productEditModal').modal('show');
+        }).fail(err => alert("Lỗi trích xuất thông tin sản phẩm."));
             });
 
             // Hàm đẻ dòng động cho Form CẬP NHẬT (Khóa tổ hợp Màu+Size cũ để bảo toàn logic đơn hàng)
-            function addVariantRowToEdit(selectedColorId = "", selectedSizeId = "", price = "", stock = "") {
-                const colorOptions = colors.map(c => `<option value="${c.mauID}" ${c.mauID === selectedColorId ? 'selected' : ''}>${c.ten}</option>`).join('');
-                const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}" ${s.kichCoID === selectedSizeId ? 'selected' : ''}>${s.ten}</option>`).join('');
+                    function addVariantRowToEdit(selectedColorId = "", selectedSizeId = "", price = "", stock = "", existingImageUrl = "") {
+            const colorOptions = colors.map(c => `<option value="${c.mauID}" ${c.mauID === selectedColorId ? 'selected' : ''}>${c.ten}</option>`).join('');
+            const sizeOptions = sizes.map(s => `<option value="${s.kichCoID}" ${s.kichCoID === selectedSizeId ? 'selected' : ''}>${s.ten}</option>`).join('');
 
-                const rowHtml = `
-                    <tr class="edit-variant-row">
-                        <td>
-                            <select class="form-select form-select-sm ev-color" required ${selectedColorId ? 'disabled' : ''}><option value="">Màu...</option>${colorOptions}</select>
-                            ${selectedColorId ? `<input type="hidden" class="ev-color-hidden" value="${selectedColorId}" />` : ''}
-                        </td>
-                        <td>
-                            <select class="form-select form-select-sm ev-size" required ${selectedSizeId ? 'disabled' : ''}><option value="">Size...</option>${sizeOptions}</select>
-                            ${selectedSizeId ? `<input type="hidden" class="ev-size-hidden" value="${selectedSizeId}" />` : ''}
-                        </td>
-                        <td><input type="number" class="form-control form-control-sm ev-price" min="0" required value="${price}" placeholder="Giá bán"></td>
-                        <td><input type="number" class="form-control form-control-sm ev-stock" min="0" required value="${stock}" placeholder="Kho tồn"></td>
-                        <td><button type="button" class="btn btn-sm text-danger btn-remove-edit-variant"><i class="bi bi-trash"></i></button></td>
-                    </tr>`;
-                $('#editVariantTableBody').append(rowHtml);
-            }
+            const rowHtml = `
+                <tr class="edit-variant-row">
+                    <td>
+                        <select class="form-select form-select-sm ev-color" required ${selectedColorId ? 'disabled' : ''}><option value="">Màu...</option>${colorOptions}</select>
+                        ${selectedColorId ? `<input type="hidden" class="ev-color-hidden" value="${selectedColorId}" />` : ''}
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm ev-size" required ${selectedSizeId ? 'disabled' : ''}><option value="">Size...</option>${sizeOptions}</select>
+                        ${selectedSizeId ? `<input type="hidden" class="ev-size-hidden" value="${selectedSizeId}" />` : ''}
+                    </td>
+                    <td><input type="number" class="form-control form-control-sm ev-price" min="0" required value="${price}" placeholder="Giá bán"></td>
+                    <td><input type="number" class="form-control form-control-sm ev-stock" min="0" required value="${stock}" placeholder="Kho tồn"></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            ${existingImageUrl ? `<img src="${existingImageUrl}" class="rounded border" style="height: 40px; width: 40px; object-fit: cover;" onerror="this.style.display='none'" />` : ''}
+                            <input type="file" class="form-control form-control-sm ev-image" accept="image/*" style="width: 120px;" onchange="previewEditImage(this)" />
+                        </div>
+                    </td>
+                    <td><button type="button" class="btn btn-sm text-danger btn-remove-edit-variant"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
+            $('#editVariantTableBody').append(rowHtml);
+        }
             $('#btnEditAddVariant').click(function() { addVariantRowToEdit(); });
             $(document).on('click', '.btn-remove-edit-variant', function() {
                 if($('.edit-variant-row').length > 1) $(this).closest('tr').remove();
@@ -305,85 +398,142 @@
             });
 
             // 5. XỬ LÝ SUBMIT FORM TẠO MỚI (POST)
-            $('#createProductForm').submit(function(e) {
-                e.preventDefault();
-                const formData = new FormData();
-                formData.append('Ten', $('#pTen').val());
-                formData.append('MoTa', $('#pMoTa').val());
-                formData.append('DanhMucID', $('#pDanhMuc').val());
-                formData.append('ThuongHieuID', $('#pThuongHieu').val());
+                    // 5. XỬ LÝ SUBMIT FORM TẠO MỚI (POST) - CÓ ẢNH THEO MÀU & CHỐNG TRÙNG
+        $('#createProductForm').submit(function(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('Ten', $('#pTen').val());
+            formData.append('MoTa', $('#pMoTa').val());
+            formData.append('DanhMucID', $('#pDanhMuc').val());
+            formData.append('ThuongHieuID', $('#pThuongHieu').val());
+            formData.append('MucVAT', $('#pMucVAT').val());
 
-                const fileInput = document.getElementById('pFileAnh');
-                if(fileInput.files[0]) formData.append('FileAnh', fileInput.files[0]);
-
-                let variantIndex = 0;
-                $('.variant-row').each(function() {
-                    formData.append(`BienThes[${variantIndex}].MauID`, $(this).find('.v-color').val());
-                    formData.append(`BienThes[${variantIndex}].KichCoID`, $(this).find('.v-size').val());
-                    formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.v-price').val());
-                    formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.v-stock').val());
-                    variantIndex++;
-                });
-
-                $('#btnSubmitProduct').prop('disabled', true).text('Đang đẩy lên hệ thống...');
-                $.ajax({
-                    url: '/api/admin/products/create',
-                    type: 'POST',
-                    data: formData,
-                    processData: false, contentType: false,
-                    success: function(res) {
-                        alert(res.message);
-                        $('#productModal').modal('hide');
-                        $('#createProductForm')[0].reset();
-                        $('#variantTableBody').empty();
-                        addVariantRow();
-                        $.get('/api/admin/products', renderProductTable);
-                    },
-                    error: function() { alert("Gặp lỗi trong quá trình tạo mới hàng hóa."); },
-                    complete: function() { $('#btnSubmitProduct').prop('disabled', false).text('Lưu Sản Phẩm'); }
-                });
+            // Kiểm tra trùng biến thể
+            let variantMap = new Map();
+            let duplicate = false;
+            $('.variant-row').each(function() {
+                const m = $(this).find('.v-color').val();
+                const s = $(this).find('.v-size').val();
+                if (!m || !s) return;
+                const key = m + '_' + s;
+                if (variantMap.has(key)) {
+                    duplicate = true;
+                    return false;
+                }
+                variantMap.set(key, true);
             });
+            if (duplicate) {
+                alert("Có biến thể trùng lặp (cùng Màu và Size). Vui lòng kiểm tra lại.");
+                return;
+            }
+
+            // Gửi biến thể và ảnh
+            let variantIndex = 0;
+            let imageIndex = 0;
+            $('.variant-row').each(function() {
+                const m = $(this).find('.v-color').val();
+                const s = $(this).find('.v-size').val();
+                formData.append(`BienThes[${variantIndex}].MauID`, m);
+                formData.append(`BienThes[${variantIndex}].KichCoID`, s);
+                formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.v-price').val());
+                formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.v-stock').val());
+                variantIndex++;
+
+                // Ảnh theo màu
+                const fileInput = $(this).find('.v-image')[0];
+                if (fileInput && fileInput.files[0]) {
+                    formData.append(`ColorImages[${imageIndex}].MauID`, m);
+                    formData.append(`ColorImages[${imageIndex}].FileAnh`, fileInput.files[0]);
+                    imageIndex++;
+                }
+            });
+
+            $('#btnSubmitProduct').prop('disabled', true).text('Đang đẩy lên hệ thống...');
+            $.ajax({
+                url: '/api/admin/products/create',
+                type: 'POST',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    alert(res.message);
+                    $('#productModal').modal('hide');
+                    $('#createProductForm')[0].reset();
+                    $('#variantTableBody').empty();
+                    addVariantRow();
+                    $.get('/api/admin/products', renderProductTable);
+                },
+                error: function(err) {
+                    alert(err.responseJSON?.message || "Gặp lỗi trong quá trình tạo mới hàng hóa.");
+                },
+                complete: function() { $('#btnSubmitProduct').prop('disabled', false).text('Lưu Sản Phẩm'); }
+            });
+        });
 
             // 6. XỬ LÝ SUBMIT FORM CẬP NHẬT (PUT)
-            $('#editProductForm').submit(function(e) {
-                e.preventDefault();
-                const productId = $('#editpId').val();
-                const formData = new FormData();
-                formData.append('Ten', $('#editpTen').val());
-                formData.append('MoTa', $('#editpMoTa').val());
-                formData.append('DanhMucID', $('#editpDanhMuc').val());
-                formData.append('ThuongHieuID', $('#editpThuongHieu').val());
+                    $('#editProductForm').submit(function(e) {
+            e.preventDefault();
+            const productId = $('#editpId').val();
+            const formData = new FormData();
+            formData.append('Ten', $('#editpTen').val());
+            formData.append('MoTa', $('#editpMoTa').val());
+            formData.append('DanhMucID', $('#editpDanhMuc').val());
+            formData.append('ThuongHieuID', $('#editpThuongHieu').val());
+            formData.append('MucVAT', $('#editpMucVAT').val());
 
-                const fileInput = document.getElementById('editpFileAnh');
-                if(fileInput.files[0]) formData.append('FileAnh', fileInput.files[0]);
-
-                let variantIndex = 0;
-                $('.edit-variant-row').each(function() {
-                    const mId = $(this).find('.ev-color').is(':disabled') ? $(this).find('.ev-color-hidden').val() : $(this).find('.ev-color').val();
-                    const sId = $(this).find('.ev-size').is(':disabled') ? $(this).find('.ev-size-hidden').val() : $(this).find('.ev-size').val();
-
-                    formData.append(`BienThes[${variantIndex}].MauID`, mId);
-                    formData.append(`BienThes[${variantIndex}].KichCoID`, sId);
-                    formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.ev-price').val());
-                    formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.ev-stock').val());
-                    variantIndex++;
-                });
-
-                $('#btnEditSubmitProduct').prop('disabled', true).text('Đang thực thi...');
-                $.ajax({
-                    url: `/api/admin/products/${productId}`,
-                    type: 'PUT',
-                    data: formData,
-                    processData: false, contentType: false,
-                    success: function(res) {
-                        alert(res.message);
-                        $('#productEditModal').modal('hide');
-                        $.get('/api/admin/products', renderProductTable);
-                    },
-                    error: function(err) { alert(err.responseJSON?.message || "Lỗi đồng bộ thông tin sửa."); },
-                    complete: function() { $('#btnEditSubmitProduct').prop('disabled', false).text('Cập Nhật'); }
-                });
+            // Kiểm tra trùng biến thể
+            let variantMap = new Map();
+            let duplicate = false;
+            $('.edit-variant-row').each(function() {
+                const m = $(this).find('.ev-color').is(':disabled') ? $(this).find('.ev-color-hidden').val() : $(this).find('.ev-color').val();
+                const s = $(this).find('.ev-size').is(':disabled') ? $(this).find('.ev-size-hidden').val() : $(this).find('.ev-size').val();
+                const key = m + '_' + s;
+                if (variantMap.has(key)) {
+                    duplicate = true;
+                    return false;
+                }
+                variantMap.set(key, true);
             });
+            if (duplicate) {
+                alert("Có biến thể trùng lặp. Vui lòng kiểm tra lại.");
+                return;
+            }
+
+            let variantIndex = 0;
+            let imageIndex = 0;
+            $('.edit-variant-row').each(function() {
+                const m = $(this).find('.ev-color').is(':disabled') ? $(this).find('.ev-color-hidden').val() : $(this).find('.ev-color').val();
+                const s = $(this).find('.ev-size').is(':disabled') ? $(this).find('.ev-size-hidden').val() : $(this).find('.ev-size').val();
+
+                formData.append(`BienThes[${variantIndex}].MauID`, m);
+                formData.append(`BienThes[${variantIndex}].KichCoID`, s);
+                formData.append(`BienThes[${variantIndex}].GiaNiemYet`, $(this).find('.ev-price').val());
+                formData.append(`BienThes[${variantIndex}].SoLuongTonKho`, $(this).find('.ev-stock').val());
+                variantIndex++;
+
+                // Ảnh mới nếu có chọn file
+                const fileInput = $(this).find('.ev-image')[0];
+                if (fileInput && fileInput.files[0]) {
+                    formData.append(`ColorImages[${imageIndex}].MauID`, m);
+                    formData.append(`ColorImages[${imageIndex}].FileAnh`, fileInput.files[0]);
+                    imageIndex++;
+                }
+            });
+
+            $('#btnEditSubmitProduct').prop('disabled', true).text('Đang thực thi...');
+            $.ajax({
+                url: `/api/admin/products/${productId}`,
+                type: 'PUT',
+                data: formData,
+                processData: false, contentType: false,
+                success: function(res) {
+                    alert(res.message);
+                    $('#productEditModal').modal('hide');
+                    $.get('/api/admin/products', renderProductTable);
+                },
+                error: function(err) { alert(err.responseJSON?.message || "Lỗi đồng bộ thông tin sửa."); },
+                complete: function() { $('#btnEditSubmitProduct').prop('disabled', false).text('Cập Nhật'); }
+            });
+        });
 
             // 7. XỬ LÝ BẤM NÚT THÙNG RÁC: XÓA SẢN PHẨM REALTIME (DELETE)
             $(document).on('click', '.btn-delete-product', function() {
@@ -402,6 +552,51 @@
                     }
                 });
             });
+                // Phân trang
+        $(document).on('click', '#pagination .page-link', function(e) {
+            e.preventDefault();
+            const page = parseInt($(this).data('page'));
+            if (page && page !== currentPage && page >= 1 && page <= Math.ceil(allProducts.length / pageSize)) {
+                currentPage = page;
+                renderProductPage();
+                $('html, body').animate({ scrollTop: $('#productTableBody').offset().top - 100 }, 200);
+            }
+                });
+                function previewNewImage(input) {
+            const img = input.parentElement.querySelector('img');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                img.style.display = 'none';
+            }
+        }
+                function previewEditImage(input) {
+            const img = input.parentElement.querySelector('img');
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (img) {
+                        img.src = e.target.result;
+                        img.style.display = 'block';
+                    } else {
+                        // Nếu chưa có thẻ img, tạo mới
+                        const newImg = document.createElement('img');
+                        newImg.src = e.target.result;
+                        newImg.className = 'rounded border';
+                        newImg.style.cssText = 'height: 40px; width: 40px; object-fit: cover;';
+                        input.parentElement.insertBefore(newImg, input);
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
         });
     </script>
 }

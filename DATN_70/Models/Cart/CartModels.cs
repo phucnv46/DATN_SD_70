@@ -16,6 +16,8 @@ public sealed class CartItemResponse
     public int SoLuong { get; set; }
     public decimal DonGia { get; set; }
     public int TonKho { get; set; }
+    public decimal GiaGoc { get; set; }
+    public int VatRate { get; set; }
 }
 
 public sealed class AddCartItemRequest

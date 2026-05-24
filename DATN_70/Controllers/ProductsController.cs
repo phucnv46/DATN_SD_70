@@ -24,6 +24,7 @@ public sealed class ProductsController : ControllerBase
     }
 
     [HttpGet("{productId}")]
+
     public async Task<ActionResult<ProductDetailResponse>> GetProductById(
         string productId,
         CancellationToken cancellationToken)

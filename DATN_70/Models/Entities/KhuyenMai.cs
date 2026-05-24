@@ -10,29 +10,26 @@ namespace DATN_70.Models.Entities
         [MaxLength(20)]
         public string KhuyenMaiID { get; set; }
 
-        // --- CỘT MỚI: MÃ VOUCHER ---
         [MaxLength(50)]
-        public string? MaCode { get; set; } // Khách nhập mã này để giảm. Nếu để NULL thì là tự động giảm.
+        public string? MaCode { get; set; }
 
         [Required]
         [MaxLength(100)]
         public string Ten { get; set; }
 
-        // --- THAY THẾ CỘT PhanTramChietKhau THÀNH BỘ ĐÔI NÀY ---
-        public LoaiGiamGia LoaiGiamGia { get; set; } // 0: Trừ thẳng tiền, 1: Phần trăm
+        public LoaiGiamGia LoaiGiamGia { get; set; }
 
         [Column(TypeName = "decimal(18,0)")]
-        public decimal GiaTriGiam { get; set; } // Nếu LoaiGiamGia=1 thì đây là % (vd: 20). Nếu LoaiGiamGia=0 thì là tiền (vd: 50000)
+        public decimal GiaTriGiam { get; set; }
 
         [Column(TypeName = "decimal(18,0)")]
-        public decimal GiamToiDa { get; set; } // Trần giảm giá (Dùng khi giảm %, ví dụ: Giảm 20% nhưng TỐI ĐA 100k)
+        public decimal GiamToiDa { get; set; }
 
         [Column(TypeName = "decimal(18,0)")]
-        public decimal GiaTriToiThieuApDung { get; set; } // Đơn từ bao nhiêu tiền thì được áp dụng
+        public decimal GiaTriToiThieuApDung { get; set; }
 
-        // --- BỔ SUNG CỘT GIỚI HẠN SỐ LƯỢNG ---
-        public int SoLuongToiDa { get; set; } // Tổng số lượng mã phát ra
-        public int SoLuongDaDung { get; set; } = 0; // Đếm số người đã xài
+        public int SoLuongToiDa { get; set; }
+        public int SoLuongDaDung { get; set; } = 0;
 
         public DateTime NgayApDung { get; set; }
         public DateTime NgayKetThuc { get; set; }
@@ -42,8 +39,13 @@ namespace DATN_70.Models.Entities
 
         public TrangThaiHoatDong TrangThai { get; set; }
 
-        // --- GIỮ NGUYÊN QUAN HỆ CŨ CỦA BẠN ---
+        [MaxLength(20)]
+        public string? DanhMucID { get; set; }
+
+        [ForeignKey("DanhMucID")]
+        public DanhMuc? DanhMucRef { get; set; } // Tên tránh trùng với class DanhMuc
+
         public ICollection<HoaDon> HoaDons { get; set; }
-        public ICollection<KhuyenMaiSanPham> KhuyenMaiSanPhams { get; set; } // Bảng phụ để áp dụng cho 1 hoặc nhiều sản phẩm cụ thể
+        public ICollection<KhuyenMaiSanPham> KhuyenMaiSanPhams { get; set; }
     }
 }

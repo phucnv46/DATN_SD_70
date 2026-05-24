@@ -61,7 +61,12 @@ public sealed class AdminProductsController : ControllerBase
             product.ThuongHieuID,
             product.ChatLieu,
             product.MucVAT,
-            HinhAnhUrl = product.HinhAnhSanPhams.FirstOrDefault(h => h.IsMain)?.Url,
+            // Trả về danh sách ảnh theo màu
+            HinhAnhs = product.HinhAnhSanPhams.Select(h => new {
+                h.MauID,
+                h.Url,
+                h.IsMain
+            }).ToList(),
             BienThes = product.ChiTietSanPhams.Select(ct => new {
                 ct.ChiTietSanPhamID,
                 ct.MauID,
@@ -75,15 +80,15 @@ public sealed class AdminProductsController : ControllerBase
         });
     }
 
-    // 3. THÊM MỚI SẢN PHẨM (TỰ ĐỘNG BĂM SKU TRÁNH LỖI SẬP DB)
+    // 3. THÊM MỚI SẢN PHẨM
     [HttpPost("create")]
-
     public async Task<IActionResult> Create([FromForm] ProductCreateRequest request)
     {
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
         }
+
         var productId = "SP" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
 
         var sanPham = new SanPham
@@ -93,18 +98,26 @@ public sealed class AdminProductsController : ControllerBase
             MoTa = request.MoTa ?? string.Empty,
             DanhMucID = request.DanhMucID,
             ThuongHieuID = request.ThuongHieuID,
-            MucVAT = 10
+            MucVAT = request.MucVAT
         };
         _context.SanPhams.Add(sanPham);
 
+        // Kiểm tra trùng biến thể trong request
+        var variantSet = new HashSet<string>();
         foreach (var vt in request.BienThes)
         {
+            var key = $"{vt.MauID}_{vt.KichCoID}";
+            if (!variantSet.Add(key))
+            {
+                return BadRequest(new { message = $"Biến thể Màu={vt.MauID}, Size={vt.KichCoID} bị trùng lặp." });
+            }
+
             var sku = $"{productId}-{vt.MauID}-{vt.KichCoID}";
-            bool skuExists = await _context.ChiTietSanPhams.AnyAsync(c => c.SKU == sku);
-            if (skuExists)
+            if (await _context.ChiTietSanPhams.AnyAsync(c => c.SKU == sku))
             {
                 return BadRequest(new { message = $"Biến thể {sku} đã tồn tại trong hệ thống." });
             }
+
             var variantId = "CT" + Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper();
             var chiTiet = new ChiTietSanPham
             {
@@ -114,34 +127,48 @@ public sealed class AdminProductsController : ControllerBase
                 MauID = vt.MauID,
                 GiaNiemYet = vt.GiaNiemYet,
                 SoLuongTonKho = vt.SoLuongTonKho,
-                SKU = $"{productId}-{vt.MauID}-{vt.KichCoID}" // Đã vá lỗi đồng bộ SKU bắt buộc
+                SKU = sku
             };
             _context.ChiTietSanPhams.Add(chiTiet);
         }
 
-        if (request.FileAnh != null)
+        // Xử lý ảnh theo từng màu
+        if (request.ColorImages != null && request.ColorImages.Any())
         {
             var wwwRootPath = _env.WebRootPath;
-            var fileName = Guid.NewGuid().ToString() + "_" + request.FileAnh.FileName;
-            var path = Path.Combine(wwwRootPath, "images/products", fileName);
+            var uploadedMauIDs = new HashSet<string>();
 
-            var directory = Path.GetDirectoryName(path);
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory!);
-
-            using (var fileStream = new FileStream(path, FileMode.Create))
+            foreach (var colorImg in request.ColorImages)
             {
-                await request.FileAnh.CopyToAsync(fileStream);
+                if (colorImg.FileAnh == null || string.IsNullOrWhiteSpace(colorImg.MauID))
+                    continue;
+
+                // Mỗi màu chỉ lấy 1 ảnh
+                if (!uploadedMauIDs.Add(colorImg.MauID))
+                    continue;
+
+                var fileName = Guid.NewGuid().ToString() + "_" + colorImg.FileAnh.FileName;
+                var path = Path.Combine(wwwRootPath, "images/products", fileName);
+                var directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory!);
+
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await colorImg.FileAnh.CopyToAsync(fileStream);
+                }
+
+                var hinhAnh = new HinhAnhSanPham
+                {
+                    HinhAnhID = Guid.NewGuid().ToString(),
+                    SanPhamID = productId,
+                    MauID = colorImg.MauID,
+                    Url = "/images/products/" + fileName,
+                    IsMain = true
+                };
+                _context.HinhAnhSanPhams.Add(hinhAnh);
             }
-
-            var hinhAnh = new HinhAnhSanPham
-            {
-                HinhAnhID = Guid.NewGuid().ToString(),
-                SanPhamID = productId,
-                Url = "/images/products/" + fileName,
-                IsMain = true
-            };
-            _context.HinhAnhSanPhams.Add(hinhAnh);
         }
+        // Nếu không có ảnh màu, có thể vẫn cho phép tạo sản phẩm không ảnh
 
         await _context.SaveChangesAsync();
         return Ok(new { message = "Tạo sản phẩm và biến thể thành công!", productId });
@@ -153,6 +180,7 @@ public sealed class AdminProductsController : ControllerBase
     {
         var sanPham = await _context.SanPhams
             .Include(s => s.ChiTietSanPhams)
+            .Include(s => s.HinhAnhSanPhams)
             .FirstOrDefaultAsync(s => s.SanPhamID == id);
 
         if (sanPham == null) return NotFound(new { message = "Không tìm thấy sản phẩm" });
@@ -161,38 +189,59 @@ public sealed class AdminProductsController : ControllerBase
         sanPham.MoTa = request.MoTa ?? string.Empty;
         sanPham.DanhMucID = request.DanhMucID;
         sanPham.ThuongHieuID = request.ThuongHieuID;
+        sanPham.MucVAT = request.MucVAT;
 
-        // Xử lý nếu Admin upload File ảnh thay thế mới
-        if (request.FileAnh != null)
+        // Xử lý ảnh theo màu nếu có
+        if (request.ColorImages != null && request.ColorImages.Any())
         {
-            var oldMainImages = _context.HinhAnhSanPhams.Where(h => h.SanPhamID == id && h.IsMain);
-            _context.HinhAnhSanPhams.RemoveRange(oldMainImages);
-
             var wwwRootPath = _env.WebRootPath;
-            var fileName = Guid.NewGuid().ToString() + "_" + request.FileAnh.FileName;
-            var path = Path.Combine(wwwRootPath, "images/products", fileName);
-
-            var directory = Path.GetDirectoryName(path);
-            if (!Directory.Exists(directory)) Directory.CreateDirectory(directory!);
-
-            using (var fileStream = new FileStream(path, FileMode.Create))
+            foreach (var colorImg in request.ColorImages)
             {
-                await request.FileAnh.CopyToAsync(fileStream);
+                if (colorImg.FileAnh == null || string.IsNullOrWhiteSpace(colorImg.MauID))
+                    continue;
+
+                // Xóa ảnh cũ của màu này
+                var oldImages = _context.HinhAnhSanPhams
+                    .Where(h => h.SanPhamID == id && h.MauID == colorImg.MauID);
+                _context.HinhAnhSanPhams.RemoveRange(oldImages);
+
+                // Lưu ảnh mới
+                var fileName = Guid.NewGuid().ToString() + "_" + colorImg.FileAnh.FileName;
+                var path = Path.Combine(wwwRootPath, "images/products", fileName);
+                var directory = Path.GetDirectoryName(path);
+                if (!Directory.Exists(directory)) Directory.CreateDirectory(directory!);
+
+                using (var fileStream = new FileStream(path, FileMode.Create))
+                {
+                    await colorImg.FileAnh.CopyToAsync(fileStream);
+                }
+
+                var hinhAnh = new HinhAnhSanPham
+                {
+                    HinhAnhID = Guid.NewGuid().ToString(),
+                    SanPhamID = id,
+                    MauID = colorImg.MauID,
+                    Url = "/images/products/" + fileName,
+                    IsMain = true
+                };
+                _context.HinhAnhSanPhams.Add(hinhAnh);
             }
-
-            var hinhAnh = new HinhAnhSanPham
-            {
-                HinhAnhID = Guid.NewGuid().ToString(),
-                SanPhamID = id,
-                Url = "/images/products/" + fileName,
-                IsMain = true
-            };
-            _context.HinhAnhSanPhams.Add(hinhAnh);
         }
 
         // Đồng bộ danh sách biến thể
         if (request.BienThes != null)
         {
+            // Kiểm tra trùng trong danh sách gửi lên
+            var sentVariantKeys = new HashSet<string>();
+            foreach (var vt in request.BienThes)
+            {
+                var key = $"{vt.MauID}_{vt.KichCoID}";
+                if (!sentVariantKeys.Add(key))
+                {
+                    return BadRequest(new { message = $"Biến thể Màu={vt.MauID}, Size={vt.KichCoID} bị trùng lặp." });
+                }
+            }
+
             foreach (var vt in request.BienThes)
             {
                 var existingVariant = sanPham.ChiTietSanPhams
@@ -249,7 +298,6 @@ public sealed class AdminProductsController : ControllerBase
 
         if (sanPham == null) return NotFound(new { message = "Không tìm thấy sản phẩm" });
 
-        // Chặn tuyệt đối xóa nếu sản phẩm nằm trong hóa đơn của khách
         foreach (var vt in sanPham.ChiTietSanPhams)
         {
             var hasOrders = await _context.HoaDonChiTiets.AnyAsync(hd => hd.ChiTietSanPhamID == vt.ChiTietSanPhamID);
@@ -268,7 +316,7 @@ public sealed class AdminProductsController : ControllerBase
     }
 }
 
-#region Data Transfer Objects (DTOs) phục vụ luồng Cập nhật sản phẩm
+#region Data Transfer Objects (DTOs)
 public class ProductUpdateRequest
 {
     [Required]
@@ -280,6 +328,8 @@ public class ProductUpdateRequest
     public string ThuongHieuID { get; set; } = string.Empty;
     public IFormFile? FileAnh { get; set; }
     public List<VariantUpdateRequest> BienThes { get; set; } = new();
+    public int MucVAT { get; set; }
+    public List<ColorImageRequest>? ColorImages { get; set; }
 }
 
 public class VariantUpdateRequest

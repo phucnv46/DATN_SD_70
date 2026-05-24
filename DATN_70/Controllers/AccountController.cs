@@ -134,6 +134,12 @@ public class AccountController : Controller
             ViewBag.Error = "Sai tài khoản hoặc mật khẩu.";
             return View();
         }
+        // Kiểm tra tài khoản có đang hoạt động không
+        if (user.TrangThai != "Hoạt động")
+        {
+            ViewBag.Error = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.";
+            return View();
+        }
 
         // 1. Lưu các thông tin tài khoản cơ bản như cũ
         HttpContext.Session.SetString("UserId", user.TaiKhoanID);
