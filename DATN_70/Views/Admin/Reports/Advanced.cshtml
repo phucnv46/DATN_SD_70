@@ -1,0 +1,248 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo chuyên sâu";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid p-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill me-2"></i>Báo cáo chuyên sâu</h2>
+
+    <!-- Bộ lọc thời gian -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <span class="fw-bold me-2">Khoảng thời gian:</span>
+                        <div class="btn-group btn-group-sm" role="group" id="advDateRangeButtons">
+                            <button type="button" class="btn btn-outline-dark active" data-range="7days">7 ngày qua</button>
+                            <button type="button" class="btn btn-outline-dark" data-range="30days">30 ngày qua</button>
+                            <button type="button" class="btn btn-outline-dark" data-range="custom">Tùy chỉnh</button>
+                        </div>
+                        <div id="advCustomDateInputs" class="d-flex gap-2 align-items-center ms-2" style="display: none;">
+                            <input type="date" id="advFromDate" class="form-control form-control-sm w-auto" />
+                            <span class="text-muted">đến</span>
+                            <input type="date" id="advToDate" class="form-control form-control-sm w-auto" />
+                        </div>
+                        <button id="advApplyFilter" class="btn btn-dark btn-sm rounded-3 ms-2">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực 1: Phân tích khách hàng -->
+    <div class="row mb-4">
+        <div class="col-12"><h4 class="fw-bold"><i class="bi bi-people-fill me-2"></i>Phân tích khách hàng</h4></div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center">
+                <small class="text-muted">Tổng khách hàng</small>
+                <h4 id="lblTotalCustomers">0</h4>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center">
+                <small class="text-muted">Tỷ lệ khách quay lại</small>
+                <h4 id="lblReturningRate">0%</h4>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold">Top khách hàng thân thiết</h6>
+                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm small">
+                        <thead><tr><th>Khách hàng</th><th>Tổng chi tiêu</th><th>Số đơn</th></tr></thead>
+                        <tbody id="topCustomersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực 2: Hiệu quả khuyến mãi -->
+    <div class="row mb-4">
+        <div class="col-12"><h4 class="fw-bold"><i class="bi bi-tags-fill me-2"></i>Hiệu quả khuyến mãi</h4></div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold">Doanh thu có/không khuyến mãi</h6>
+                <canvas id="promoChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold">Top chương trình khuyến mãi</h6>
+                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                    <table class="table table-sm small">
+                        <thead><tr><th>Mã KM</th><th>Lần dùng</th><th>Tổng giảm</th></tr></thead>
+                        <tbody id="topPromotionsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực 3: So sánh kênh bán -->
+    <div class="row mb-4">
+        <div class="col-12"><h4 class="fw-bold"><i class="bi bi-shop me-2"></i>So sánh kênh bán</h4></div>
+        <div class="col-md-4">
+            <div class="card p-3 text-center">
+                <small class="text-muted">Doanh thu Online</small>
+                <h4 id="lblOnlineRevenue">0 đ</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 text-center">
+                <small class="text-muted">Doanh thu POS</small>
+                <h4 id="lblPosRevenue">0 đ</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h6 class="fw-bold">Tỷ trọng</h6>
+                <canvas id="channelPieChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực 4: Phân tích sản phẩm & tồn kho -->
+    <div class="row mb-4">
+        <div class="col-12"><h4 class="fw-bold"><i class="bi bi-box-seam-fill me-2"></i>Phân tích sản phẩm & tồn kho</h4></div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold">Doanh thu theo danh mục</h6>
+                <canvas id="categoryPieChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold">Top 10 sản phẩm tồn kho nhiều nhất</h6>
+                <canvas id="inventoryChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let currentAdvRange = '7days';
+        let promoChart, channelPieChart, categoryPieChart, inventoryChart;
+
+        document.querySelectorAll('#advDateRangeButtons button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#advDateRangeButtons button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentAdvRange = this.dataset.range;
+                document.getElementById('advCustomDateInputs').style.display = currentAdvRange === 'custom' ? 'flex' : 'none';
+            });
+        });
+
+        function getAdvDateRange() {
+            const now = new Date();
+            let from, to;
+            if (currentAdvRange === '7days') {
+                from = new Date(now); from.setDate(from.getDate() - 6); from.setHours(0,0,0,0);
+                to = new Date(now); to.setHours(23,59,59,999);
+            } else if (currentAdvRange === '30days') {
+                from = new Date(now); from.setDate(from.getDate() - 29); from.setHours(0,0,0,0);
+                to = new Date(now); to.setHours(23,59,59,999);
+            } else if (currentAdvRange === 'custom') {
+                from = document.getElementById('advFromDate').valueAsDate;
+                to = document.getElementById('advToDate').valueAsDate;
+                if (!from || !to) { alert('Vui lòng chọn đầy đủ ngày.'); return null; }
+                to.setHours(23,59,59,999);
+            }
+            return { from, to };
+        }
+
+        async function loadAdvancedReports() {
+            const range = getAdvDateRange();
+            if (!range) return;
+            const params = new URLSearchParams();
+            if (range.from) params.append('fromDate', range.from.toISOString());
+            if (range.to) params.append('toDate', range.to.toISOString());
+
+            // 1. Khách hàng
+            const custData = await fetch(`/api/admin/reports/customer-stats?${params}`).then(r => r.json());
+            document.getElementById('lblTotalCustomers').textContent = custData.totalCustomers || 0;
+            document.getElementById('lblReturningRate').textContent = (custData.returningRate || 0) + '%';
+            let topCustHtml = '';
+            (custData.topCustomers || []).forEach(c => {
+                topCustHtml += `<tr><td>${c.customerName}</td><td>${(c.totalSpent || 0).toLocaleString('vi-VN')} đ</td><td>${c.orderCount}</td></tr>`;
+            });
+            document.getElementById('topCustomersBody').innerHTML = topCustHtml || '<tr><td colspan="3" class="text-center">Chưa có dữ liệu</td></tr>';
+
+            // 2. Khuyến mãi
+            const promoData = await fetch(`/api/admin/reports/promotion-stats?${params}`).then(r => r.json());
+            if (promoChart) promoChart.destroy();
+            promoChart = new Chart(document.getElementById('promoChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Có khuyến mãi', 'Không khuyến mãi'],
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: [promoData.revenueWithPromo || 0, promoData.revenueWithoutPromo || 0],
+                        backgroundColor: ['#ffb822', '#50cd89']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+            let topPromoHtml = '';
+            (promoData.topPromotions || []).forEach(p => {
+                topPromoHtml += `<tr><td>${p.promotionName} (${p.code || 'Tự động'})</td><td>${p.timesUsed}</td><td>${(p.totalDiscount || 0).toLocaleString('vi-VN')} đ</td></tr>`;
+            });
+            document.getElementById('topPromotionsBody').innerHTML = topPromoHtml || '<tr><td colspan="3" class="text-center">Chưa có dữ liệu</td></tr>';
+
+            // 3. Kênh bán
+            const channelData = await fetch(`/api/admin/reports/channel-stats?${params}`).then(r => r.json());
+            document.getElementById('lblOnlineRevenue').textContent = (channelData.onlineRevenue || 0).toLocaleString('vi-VN') + ' đ';
+            document.getElementById('lblPosRevenue').textContent = (channelData.posRevenue || 0).toLocaleString('vi-VN') + ' đ';
+            if (channelPieChart) channelPieChart.destroy();
+            channelPieChart = new Chart(document.getElementById('channelPieChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['Online', 'POS'],
+                    datasets: [{
+                        data: [channelData.onlineRevenue || 0, channelData.posRevenue || 0],
+                        backgroundColor: ['#3699ff', '#50cd89']
+                    }]
+                }
+            });
+
+            // 4. Danh mục & Tồn kho
+            const catData = await fetch(`/api/admin/reports/category-stats?${params}`).then(r => r.json());
+            if (categoryPieChart) categoryPieChart.destroy();
+            categoryPieChart = new Chart(document.getElementById('categoryPieChart'), {
+                type: 'pie',
+                data: {
+                    labels: (catData || []).map(c => c.categoryName),
+                    datasets: [{
+                        data: (catData || []).map(c => c.revenue),
+                        backgroundColor: ['#ffb822', '#50cd89', '#3699ff', '#f52222', '#7239ea', '#ff6b6b']
+                    }]
+                }
+            });
+
+            const invData = await fetch('/api/admin/reports/inventory').then(r => r.json());
+            if (inventoryChart) inventoryChart.destroy();
+            inventoryChart = new Chart(document.getElementById('inventoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: (invData || []).map(i => i.productName),
+                    datasets: [{
+                        label: 'Tồn kho',
+                        data: (invData || []).map(i => i.totalStock),
+                        backgroundColor: '#f52222'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        document.getElementById('advApplyFilter').addEventListener('click', loadAdvancedReports);
+        loadAdvancedReports();
+    </script>
+}

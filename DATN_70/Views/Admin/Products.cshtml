@@ -1,6 +1,6 @@
 ﻿@{
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Quản lý sản phẩm";
+    ViewData["Title"] = "Báo cáo chuyên sâu";
+    Layout = "_AdminLayout";
 }
 
 <div class="card p-4 bg-white">
@@ -13,7 +13,12 @@
             <i class="bi bi-plus-circle me-1"></i> Thêm sản phẩm mới
         </button>
     </div>
-
+    <div class="d-flex justify-content-start mb-3">
+        <div class="input-group input-group-sm shadow-sm" style="max-width: 300px;">
+            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+            <input type="text" id="searchProductInput" class="form-control border-start-0 ps-0" placeholder="Tìm Mã SP hoặc Tên Sản Phẩm...">
+        </div>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle">
             <thead class="table-light">
@@ -221,6 +226,21 @@
                     </tr>
                 `).join('');
                 $('#productTableBody').html(html);
+                // 2. Hàm vẽ bảng sản phẩm ra màn hình
+            function renderProductTable(data) {
+                if(data.length === 0) {
+                    $('#productTableBody').html('<tr><td colspan="6" class="text-center text-muted py-4">Chưa có sản phẩm nào trong kho.</td></tr>');
+                    return;
+                }
+                const html = data.map(p => `
+                    // ... (đoạn code tạo HTML giữ nguyên) ...
+                `).join('');
+
+                $('#productTableBody').html(html);
+
+                // THÊM DÒNG NÀY VÀO ĐÂY: Ép bảng tự động lọc lại theo từ khóa đang gõ
+                $('#searchProductInput').trigger('input');
+            }
             }
 
             // 3. Quản lý dòng phân loại động cho form TẠO MỚI
@@ -399,6 +419,25 @@
                     },
                     error: function(err) {
                         alert(err.responseJSON?.message || "Từ chối thực thi: Sản phẩm đã dính dữ liệu hóa đơn giao dịch.");
+                    }
+                });
+            });// 8. SỰ KIỆN TÌM KIẾM NHANH MÃ SP HOẶC TÊN SP
+            $(document).on('input', '#searchProductInput', function () {
+                let keyword = $(this).val().toLowerCase().trim();
+
+                $('#productTableBody tr').each(function () {
+                    // Bỏ qua dòng trạng thái loading hoặc dòng trống (dòng có colspan=6)
+                    if ($(this).find('td').length < 6) return;
+
+                    // Lấy nội dung của cột Mã SP (cột 1 - index 0) và Tên SP (cột 2 - index 1)
+                    let maSP = $(this).find('td:eq(0)').text().toLowerCase().trim();
+                    let tenSP = $(this).find('td:eq(1)').text().toLowerCase().trim();
+
+                    // Kiểm tra xem chuỗi có chứa từ khóa không
+                    if (maSP.includes(keyword) || tenSP.includes(keyword)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
                     }
                 });
             });

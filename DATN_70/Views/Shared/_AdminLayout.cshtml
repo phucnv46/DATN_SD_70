@@ -115,7 +115,7 @@
                 <a href="/Admin/Attributes" id="menu-attributes" class="nav-link"><i class="bi bi-sliders"></i> Thuộc tính sản phẩm</a>
                 <a href="/Admin/Accounts" id="menu-accounts" class="nav-link"><i class="bi bi-people"></i> Quản lý tài khoản</a>
                 <a href="/Admin/Promotions" id="menu-promotions" class="nav-link"><i class="bi bi-tags"></i> Quản lý khuyến mãi</a>
-
+                <a href="/Admin/Reports/Advanced" id="menu-reports" class="nav-link"><i class="bi bi-bar-chart-fill"></i> Báo cáo chuyên sâu</a>
                 <a href="/Admin/POS" id="menu-pos" class="nav-link text-warning"><i class="bi bi-cpu-fill text-success"></i> <strong>Bán hàng tại quầy (POS)</strong></a>
 
                 <a href="/Home/Index" class="nav-link border-top border-secondary mt-auto"><i class="bi bi-arrow-left-square"></i> Xem Cửa hàng</a>
@@ -166,6 +166,7 @@
         else if (path.includes('/Admin/Accounts')) document.getElementById('menu-accounts')?.classList.add('active');
         else if (path.includes('/Admin/Promotions')) document.getElementById('menu-promotions')?.classList.add('active');
         else if (path.includes('/Admin/POS')) document.getElementById('menu-pos')?.classList.add('active');
+        else if (path.includes('/Admin/Reports')) document.getElementById('menu-reports')?.classList.add('active');
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

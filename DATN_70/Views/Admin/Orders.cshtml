@@ -30,8 +30,13 @@
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-orders-list" role="tabpanel">
-            <div class="d-flex justify-content-end mb-3">
-                <select id="statusFilter" class="form-select form-select-sm w-auto fw-medium">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="input-group input-group-sm shadow-sm" style="max-width: 300px;">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchOrderInput" class="form-control border-start-0 ps-0" placeholder="Tìm tên hoặc số điện thoại...">
+                </div>
+
+                <select id="statusFilter" class="form-select form-select-sm w-auto fw-medium shadow-sm">
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xác nhận</option>
                     <option value="confirmed">Đã xác nhận</option>
@@ -181,6 +186,7 @@
                         });
                     }
                     $('#orderTableBody').html(html);
+                    $('#searchOrderInput').trigger('input');
                 });
             }
 
@@ -460,22 +466,45 @@
                     }
                 });
             });
-                    // SỰ KIỆN BẤM NÚT TỪ CHỐI PHIẾU RMA ĐỔI TRẢ
-        $(document).on('click', '.btn-reject-return', function() {
-            const returnId = $(this).data('id');
-            if(!confirm(`Xác nhận TỪ CHỐI yêu cầu đổi trả mã [${returnId}]?`)) return;
+        // SỰ KIỆN BẤM NÚT TỪ CHỐI PHIẾU RMA ĐỔI TRẢ
+                $(document).on('click', '.btn-reject-return', function() {
+                    const returnId = $(this).data('id');
+                    if(!confirm(`Xác nhận TỪ CHỐI yêu cầu đổi trả mã [${returnId}]?`)) return;
 
-            $.ajax({
-                url: `/api/admin/orders/returns/${returnId}/reject`,
-                type: 'PUT',
-                success: function(res) {
-                    alert(res.message);
-                    loadReturnRequests(); // Tải lại danh sách tab RMA
-                },
-                error: function() { alert("Lỗi hệ thống khi từ chối phiếu."); }
+                    $.ajax({
+                        url: `/api/admin/orders/returns/${returnId}/reject`,
+                        type: 'PUT',
+                        success: function(res) {
+                            alert(res.message);
+                            loadReturnRequests(); // Tải lại danh sách tab RMA
+                        },
+                        error: function() { alert("Lỗi hệ thống khi từ chối phiếu."); }
+                    });
+                });
+
+                // SỰ KIỆN TÌM KIẾM NHANH TÊN HOẶC SĐT
+
+        $(document).on('input', '#searchOrderInput', function () {
+            let keyword = $(this).val().toLowerCase().trim(); // Lấy từ khóa và cắt khoảng trắng
+
+            $('#orderTableBody tr').each(function () {
+                // Bỏ qua dòng trạng thái loading hoặc dòng trống (dòng có colspan=8)
+                if ($(this).find('td').length < 8) return;
+
+                // Lấy nội dung, viết thường và cắt khoảng trắng 2 đầu để so sánh cực chuẩn
+                let tenKhachHang = $(this).find('td:eq(2)').text().toLowerCase().trim();
+                let soDienThoai = $(this).find('td:eq(3)').text().toLowerCase().trim();
+
+                // Kiểm tra xem chuỗi có chứa từ khóa không
+                if (tenKhachHang.includes(keyword) || soDienThoai.includes(keyword)) {
+                    $(this).show(); // Hiện dòng
+                } else {
+                    $(this).hide(); // Ẩn dòng
+                }
             });
         });
-        });
+
+            }); // CHỈ GIỮ LẠI ĐÚNG 1 CẶP NÀY ĐỂ ĐÓNG HÀM $(document).ready
     </script>
     <style>
         .badge-delivery_failed {

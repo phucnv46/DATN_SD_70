@@ -175,7 +175,7 @@
                         html = '<tr><td colspan="9" class="text-center py-4 text-muted">Chưa có chương trình khuyến mãi nào được tạo.</td></tr>';
                     } else {
                         data.forEach(promo => {
-                            const isActived = promo.trangThai === "Hoạt động";
+                            const isActived = promo.trangThaiInt === 1;  // 1 = HoatDong
                             const valBadge = promo.loaiGiamGia.includes("%") ? `${promo.giaTriGiam}%` : `${promo.giaTriGiam.toLocaleString('vi-VN')}đ`;
 
                             html += `
@@ -189,12 +189,11 @@
                                         ${new Date(promo.ngayApDung).toLocaleDateString('vi-VN')} - ${new Date(promo.ngayKetThuc).toLocaleDateString('vi-VN')}
                                     </td>
                                     <td class="text-center small fw-medium">${promo.soLuongDaDung} / ${promo.soLuongToiDa}</td>
-                                    <td class="text-center">
-                                        <div class="form-check form-switch d-inline-block">
-                                            <input class="form-check-input btn-toggle-promo" type="checkbox" data-id="${promo.khuyenMaiId}" ${isActived ? 'checked' : ''}>
-                                            <label class="form-check-label small fw-bold ${isActived ? 'text-success' : 'text-danger'}">${promo.trangThai}</label>
-                                        </div>
-                                    </td>
+                                            <td class="text-center">
+            <button class="btn btn-sm ${isActived ? 'btn-success' : 'btn-danger'} btn-toggle-promo" data-id="${promo.khuyenMaiId}">
+                ${isActived ? 'Đang hoạt động' : 'Đã tắt'}
+            </button>
+        </td>
                                     <td class="text-center">
                                         <button class="btn btn-sm btn-outline-danger btn-delete-promo" data-id="${promo.khuyenMaiId}"><i class="bi bi-trash"></i></button>
                                     </td>
@@ -205,29 +204,30 @@
                 });
             }
 
-            // 2. Xử lý Bật/Tắt nhanh trạng thái hoạt động bằng switch gạt
-            $(document).on('change', '.btn-toggle-promo', function() {
-                const checkbox = $(this);
-                const promoId = checkbox.data('id');
+                   // 2. Xử lý Bật/Tắt trạng thái bằng nút bấm
+        $(document).on('click', '.btn-toggle-promo', function() {
+            const btn = $(this);
+            const promoId = btn.data('id');
 
-                $.ajax({
-                    url: `/api/admin/promotions/${promoId}/toggle-status`,
-                    type: 'PUT',
-                    success: function(res) {
-                        const label = checkbox.closest('.form-check').find('.form-check-label');
-                        label.text(res.currentStatus);
-                        if(res.currentStatus === "Hoạt động") {
-                            label.removeClass('text-danger').addClass('text-success');
-                        } else {
-                            label.removeClass('text-success').addClass('text-danger');
-                        }
-                    },
-                    error: function() {
-                        alert("Không thể chuyển đổi trạng thái khuyến mãi.");
-                        checkbox.prop('checked', !checkbox.is(':checked'));
-                    }
-                });
+            $.ajax({
+                url: `/api/admin/promotions/${promoId}/toggle-status`,
+                type: 'PUT',
+                        success: function(res) {
+            // Dùng trực tiếp chuỗi trạng thái từ API
+            const isActive = res.currentStatus === "HoatDong";
+            if (isActive) {
+                btn.removeClass('btn-danger').addClass('btn-success');
+                btn.text('Đang hoạt động');
+            } else {
+                btn.removeClass('btn-success').addClass('btn-danger');
+                btn.text('Đã tắt');
+            }
+        },
+                error: function() {
+                    alert("Không thể chuyển đổi trạng thái khuyến mãi.");
+                }
             });
+        });
 
             // 3. Xử lý gửi Form tạo mới mã giảm giá (POST)
             $('#createPromoForm').submit(function(e) {
@@ -301,4 +301,5 @@
             });
         });
     </script>
+
 }
